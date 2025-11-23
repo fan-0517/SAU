@@ -227,7 +227,8 @@ const platformStats = reactive({
   kuaishou: 3,
   douyin: 4,
   channels: 2,
-  xiaohongshu: 3
+  xiaohongshu: 3,
+  tiktok: 0
 })
 
 // 任务统计数据
@@ -295,7 +296,8 @@ const getPlatformTagType = (platform) => {
     '快手': 'success',
     '抖音': 'danger',
     '视频号': 'warning',
-    '小红书': 'info'
+    '小红书': 'info',
+    'TikTok': 'primary'
   }
   return typeMap[platform] || 'info'
 }

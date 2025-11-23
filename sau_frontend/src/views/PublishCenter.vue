@@ -545,7 +545,8 @@ const platforms = [
   { key: 3, name: '抖音' },
   { key: 4, name: '快手' },
   { key: 2, name: '视频号' },
-  { key: 1, name: '小红书' }
+  { key: 1, name: '小红书' },
+  { key: 5, name: 'TikTok' }
 ]
 
 const defaultTabInit = {

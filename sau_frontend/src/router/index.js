@@ -4,6 +4,8 @@ import AccountManagement from '../views/AccountManagement.vue'
 import MaterialManagement from '../views/MaterialManagement.vue'
 import PublishCenter from '../views/PublishCenter.vue'
 import About from '../views/About.vue'
+import Website from '../views/Website.vue'
+import Data from '../views/Data.vue'
 
 const routes = [
   {
@@ -25,6 +27,16 @@ const routes = [
     path: '/publish-center',
     name: 'PublishCenter',
     component: PublishCenter
+  },
+  {
+    path: '/website',
+    name: 'Website',
+    component: Website
+  },
+  {
+    path: '/data',
+    name: 'Data',
+    component: Data
   },
   {
     path: '/about',
