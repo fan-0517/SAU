@@ -7,10 +7,10 @@ import uuid
 from pathlib import Path
 from queue import Queue
 from flask_cors import CORS
-from myUtils.auth import check_cookie
+from myUtils.auth import check_cookie, cookie_auth_tiktok
 from flask import Flask, request, jsonify, Response, render_template, send_from_directory
 from conf import BASE_DIR
-from myUtils.login import get_tencent_cookie, douyin_cookie_gen, get_ks_cookie, xiaohongshu_cookie_gen
+from myUtils.login import douyin_cookie_gen, get_tencent_cookie, get_ks_cookie, xiaohongshu_cookie_gen, get_tiktok_cookie
 from myUtils.postVideo import post_video_tencent, post_video_DouYin, post_video_ks, post_video_xhs
 
 active_queues = {}
@@ -223,17 +223,25 @@ def getAccounts():
 
 @app.route("/getValidAccounts",methods=['GET'])
 async def getValidAccounts():
+    # 平台类型:1抖音 2腾讯 3快手 4小红书 5TikTok
+    platform_type = request.args.get('type', type=int, default=0)
+    
     with sqlite3.connect(Path(BASE_DIR / "db" / "database.db")) as conn:
         cursor = conn.cursor()
-        cursor.execute('''
-        SELECT * FROM user_info''')
+        if platform_type == 0:
+            cursor.execute("SELECT * FROM user_info")
+        else:
+            cursor.execute("SELECT * FROM user_info WHERE type = ?", (platform_type,))
         rows = cursor.fetchall()
         rows_list = [list(row) for row in rows]
         print("\n📋 当前数据表内容：")
         for row in rows:
             print(row)
         for row in rows_list:
-            flag = await check_cookie(row[1],row[2])
+            # 对所有平台类型统一调用check_cookie函数
+            # 包括TikTok(类型5)，check_cookie函数已支持
+            flag = await check_cookie(row[1], row[2])
+            
             if not flag:
                 row[4] = 0
                 cursor.execute('''
@@ -518,6 +526,11 @@ def postVideo():
         case 4:
             post_video_ks(title, file_list, tags, account_list, category, enableTimer, videos_per_day, daily_times,
                       start_days)
+        case 5:
+                print(f'[+] Publishing to TikTok')
+                # TikTok
+                post_video_TikTok(title, file_list, tags, account_list, category, enableTimer, videos_per_day, daily_times,
+                      start_days, thumbnail_path)
     # 返回响应给客户端
     return jsonify(
         {
@@ -600,8 +613,14 @@ def postVideoBatch():
                 post_video_DouYin(title, file_list, tags, account_list, category, enableTimer, videos_per_day, daily_times,
                           start_days, productLink, productTitle)
             case 4:
+                print(f'[+] Batch publishing to KuaiShou')
+                # KuaiShou
                 post_video_ks(title, file_list, tags, account_list, category, enableTimer, videos_per_day, daily_times,
                           start_days)
+            case 5:
+                print(f'[+] Batch publishing to TikTok')
+                # TikTok
+                post_video_TikTok(title, file_list, tags, account_list, enableTimer, videos_per_day, daily_times, start_days)
     # 返回响应给客户端
     return jsonify(
         {
@@ -753,6 +772,11 @@ def run_async_function(type,id,status_queue):
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
             loop.run_until_complete(get_ks_cookie(id,status_queue))
+            loop.close()
+        case '5':
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            loop.run_until_complete(get_tiktok_cookie(id,status_queue))
             loop.close()
 
 # SSE 流生成器函数

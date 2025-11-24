@@ -8,6 +8,7 @@ from utils.base_social_media import set_init_script
 import uuid
 from pathlib import Path
 from conf import BASE_DIR, LOCAL_CHROME_HEADLESS
+from uploader.tk_uploader.main_chrome import tiktok_logger
 
 # 抖音登录
 async def douyin_cookie_gen(id,status_queue):
@@ -300,6 +301,92 @@ async def xiaohongshu_cookie_gen(id,status_queue):
             conn.commit()
             print("✅ 用户状态已记录")
         status_queue.put("200")
+
+# TikTok登录
+async def get_tiktok_cookie(id, status_queue):
+    url_changed_event = asyncio.Event()
+    
+    async def on_url_change():
+        # 检查是否是主框架的变化
+        if page.url != original_url:
+            url_changed_event.set()
+    
+    async with async_playwright() as playwright:
+        options = {
+            'args': [
+                '--lang en-US'
+            ],
+            'headless': LOCAL_CHROME_HEADLESS,
+        }
+        browser = await playwright.chromium.launch(**options)
+        context = await browser.new_context()
+        context = await set_init_script(context)
+        page = await context.new_page()
+        await page.goto("https://www.tiktok.com/login")
+        original_url = page.url
+        
+        # 等待二维码出现
+        try:
+            # 等待登录二维码出现
+            await page.wait_for_selector('[data-e2e="qrcode"]', timeout=10000)
+            img_locator = page.locator('[data-e2e="qrcode"]')
+            # 获取二维码图片src
+            src = await img_locator.get_attribute("src")
+            print("✅ TikTok 二维码地址:", src)
+            status_queue.put(src)
+            
+            # 监听页面的 'framenavigated' 事件
+            page.on('framenavigated',
+                    lambda frame: asyncio.create_task(on_url_change()) if frame == page.main_frame else None)
+            
+            try:
+                # 等待 URL 变化或超时
+                await asyncio.wait_for(url_changed_event.wait(), timeout=200)
+                print("✅ TikTok 登录成功，页面跳转")
+            except asyncio.TimeoutError:
+                tiktok_logger.error("[+] TikTok 登录超时")
+                status_queue.put("500")
+                await page.close()
+                await context.close()
+                await browser.close()
+                return None
+            
+            # 生成UUID并保存cookie
+            uuid_v1 = uuid.uuid1()
+            print(f"UUID v1: {uuid_v1}")
+            cookies_dir = Path(BASE_DIR / "cookiesFile")
+            cookies_dir.mkdir(exist_ok=True)
+            await context.storage_state(path=cookies_dir / f"{uuid_v1}.json")
+            
+            # 验证cookie是否有效
+            result = await check_cookie(5, f"{uuid_v1}.json")
+            if not result:
+                tiktok_logger.error("[+] TikTok cookie 验证失败")
+                status_queue.put("500")
+                await page.close()
+                await context.close()
+                await browser.close()
+                return None
+            
+            # 保存账号信息到数据库
+            with sqlite3.connect(Path(BASE_DIR / "db" / "database.db")) as conn:
+                cursor = conn.cursor()
+                cursor.execute('''
+                                    INSERT INTO user_info (type, filePath, userName, status)
+                                    VALUES (?, ?, ?, ?)
+                                    ''', (5, f"{uuid_v1}.json", id, 1))
+                conn.commit()
+                tiktok_logger.success("✅ TikTok 用户状态已记录")
+            
+            status_queue.put("200")
+            
+        except Exception as e:
+            tiktok_logger.error(f"[+] TikTok 登录过程出错: {str(e)}")
+            status_queue.put("500")
+        finally:
+            await page.close()
+            await context.close()
+            await browser.close()
 
 # a = asyncio.run(xiaohongshu_cookie_gen(4,None))
 # print(a)

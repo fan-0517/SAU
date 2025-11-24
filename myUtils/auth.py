@@ -8,6 +8,7 @@ from xhs import XhsClient
 from conf import BASE_DIR, LOCAL_CHROME_HEADLESS
 from utils.base_social_media import set_init_script
 from utils.log import tencent_logger, kuaishou_logger, douyin_logger
+from uploader.tk_uploader.main_chrome import tiktok_logger
 from pathlib import Path
 from uploader.xhs_uploader.main import sign_local
 
@@ -102,6 +103,32 @@ async def cookie_auth_xhs(account_file):
             return True
 
 
+async def cookie_auth_tiktok(account_file):
+    async with async_playwright() as playwright:
+        browser = await playwright.chromium.launch(headless=True)
+        context = await browser.new_context(storage_state=account_file)
+        context = await set_init_script(context)
+        # 创建一个新的页面
+        page = await context.new_page()
+        # 访问TikTok创作者中心上传页面
+        await page.goto("https://www.tiktok.com/creator-center/upload")
+        try:
+            # 等待页面加载完成
+            await page.wait_for_url("https://www.tiktok.com/creator-center/upload", timeout=10000)
+            # 检查是否需要登录
+            try:
+                await page.get_by_text("Log in", timeout=5000)
+                tiktok_logger.error("[+] TikTok cookie 失效，需要登录")
+                return False
+            except:
+                tiktok_logger.success("[+] TikTok cookie 有效")
+                return True
+        except:
+            tiktok_logger.error("[+] 等待 TikTok 页面超时，cookie 可能失效")
+            await context.close()
+            await browser.close()
+            return False
+
 async def check_cookie(type, file_path):
     match type:
         # 小红书
@@ -116,6 +143,9 @@ async def check_cookie(type, file_path):
         # 快手
         case 4:
             return await cookie_auth_ks(Path(BASE_DIR / "cookiesFile" / file_path))
+        # TikTok
+        case 5:
+            return await cookie_auth_tiktok(Path(BASE_DIR / "cookiesFile" / file_path))
         case _:
             return False
 
