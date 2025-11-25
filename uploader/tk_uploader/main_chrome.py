@@ -196,7 +196,7 @@ class TiktokVideo(object):
         tiktok_logger.success(f"video_id: {await self.get_last_video_id(page)}")
 
         await context.storage_state(path=f"{self.account_file}")  # save cookie
-        tiktok_logger.info('  [-] update cookie！')
+        tiktok_logger.info('  [tiktok] update cookie！')
         await asyncio.sleep(2)  # close delay for look the video status
         # close all
         await context.close()
@@ -264,8 +264,25 @@ class TiktokVideo(object):
         while True:
             try:
                 publish_button = self.locator_base.locator('div.button-group button').nth(0)
+                #打印publish_button的文本
+                tiktok_logger.info(f"  [-] publish_button text: {await publish_button.text_content()}")
                 if await publish_button.count():
                     await publish_button.click()
+
+                # 检查并处理版权检查弹窗
+                    try:
+                        # 等待弹窗出现
+                        await page.wait_for_selector('button.TUXButton.TUXButton--primary div.TUXButton-label:has-text("Post now")', timeout=5000)
+                        tiktok_logger.info("  [-]检测到版权检查弹窗，准备点击Post now按钮")
+                        
+                        # 使用更精确的选择器点击Post now按钮
+                        await self.locator_base.locator('button.TUXButton.TUXButton--primary div.TUXButton-label >> text=Post now').click()
+                        tiktok_logger.info("  [-]已点击Post now按钮")
+                        
+                        # 等待操作完成
+                        await page.wait_for_timeout(2000)
+                    except Exception as e:
+                        tiktok_logger.info(f"  [-]未检测到版权检查弹窗或点击失败: {str(e)}")
 
                 await page.wait_for_url("https://www.tiktok.com/tiktokstudio/content",  timeout=60000)
                 tiktok_logger.success("  [-] video published success")
@@ -291,14 +308,6 @@ class TiktokVideo(object):
                 if await self.locator_base.locator(
                         'div.button-group > button >> text=Post').get_attribute("disabled") is None:
                     tiktok_logger.info("  [-]video uploaded.")
-                
-                    try:
-                        # 等待弹窗出现
-                        await self.locator_base.locator('div[role="dialog"] button >> text=Post now').click()
-                        tiktok_logger.info("  [-]已点击Post now按钮")
-                    except Exception:
-                        tiktok_logger.info("  [-]未检测到版权检查弹窗")
-                    
                     break
                 else:
                     tiktok_logger.info("  [-] video uploading...")
