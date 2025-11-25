@@ -154,16 +154,20 @@ class TiktokVideo(object):
 
         # change language to eng first
         await self.change_language(page)
+        # 打印日志
+        tiktok_logger.info(f"[+]Changing language to english.")
         await page.goto("https://www.tiktok.com/tiktokstudio/upload")
         tiktok_logger.info(f'[+]Uploading-------{self.title}.mp4')
 
         await page.wait_for_url("https://www.tiktok.com/tiktokstudio/upload", timeout=30000)
+        # 打印日志
+        tiktok_logger.info(f"[+]Waiting for upload page to load.")
 
-        try:
-            await page.wait_for_selector('iframe[data-tt="Upload_index_iframe"], div.upload-container', timeout=30000)
-            tiktok_logger.info("Either iframe or div appeared.")
-        except Exception as e:
-            tiktok_logger.error("Neither iframe nor div appeared within the timeout.")
+        #try:
+        #    await page.wait_for_selector('iframe[data-tt="Upload_index_iframe"], div.upload-container', timeout=30000)
+        #    tiktok_logger.info("Either iframe or div appeared.")
+        #except Exception as e:
+        #    tiktok_logger.error("Neither iframe nor div appeared within the timeout.")
 
         await self.choose_base_locator(page)
 
@@ -242,9 +246,9 @@ class TiktokVideo(object):
 
     async def change_language(self, page):
         # set the language to english
-        await page.goto("https://www.tiktok.com")
-        await page.wait_for_load_state('domcontentloaded')
-        await page.wait_for_selector('[data-e2e="nav-more-menu"]')
+        await page.goto("https://www.tiktok.com", timeout=60000)  # 设置60秒超时
+        await page.wait_for_load_state('domcontentloaded', timeout=30000)
+        await page.wait_for_selector('[data-e2e="nav-more-menu"]', timeout=30000)
         # 已经设置为英文, 省略这个步骤
         if await page.locator('[data-e2e="nav-more-menu"]').text_content() == "More":
             return
@@ -281,6 +285,7 @@ class TiktokVideo(object):
     async def detect_upload_status(self, page):
         while True:
             try:
+                await page.wait_for_timeout(10000)  # 等待10秒检查时间
                 # if await self.locator_base.locator('div.btn-post > button').get_attribute("disabled") is None:
                 if await self.locator_base.locator(
                         'div.button-group > button >> text=Post').get_attribute("disabled") is None:

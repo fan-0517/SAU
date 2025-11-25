@@ -124,37 +124,25 @@ def post_video_TikTok(title, files, tags, account_file, category=TencentZoneType
         # 遍历文件和账号进行发布
         for index, file in enumerate(files):
             for cookie in account_file:
-                # 打印发布信息
-                logger.info(f"文件路径: {str(file)}")
-                logger.info(f"视频文件名: {file.name}")
-                logger.info(f"标题: {title}")
-                logger.info(f"标签: {tags}")
+                # print打印发布信息
+                print(f"文件路径: {str(file)}")
+                print(f"视频文件名: {file.name}")
+                print(f"标题: {title}")
+                print(f"标签: {tags}")
                 
                 # 检查cookie文件是否存在
-                if not cookie.exists():
-                    logger.error(f"TikTok账号cookie文件不存在: {str(cookie)}")
-                    continue
+                #if not cookie.exists():
+                #    logger.error(f"TikTok账号cookie文件不存在: {str(cookie)}")
+                #    continue
                 
                 # 初始化cookie设置
                 try:
-                    cookie_setup = asyncio.run(tiktok_setup(cookie, handle=True))
-                    
-                    # 使用与参考示例相同的方式处理标题和标签
-                    # 如果没有提供标题和标签，则从文件名获取
-                    if not title or not tags:
-                        try:
-                            file_title, file_tags = get_title_and_hashtags(str(file))
-                            if not title:
-                                title = file_title
-                            if not tags:
-                                tags = file_tags
-                        except Exception as e:
-                            logger.warning(f"无法从文件获取标题和标签: {str(e)}")
-                            # 如果获取失败，使用默认值
-                            if not title:
-                                title = file.name.replace('.mp4', '').replace('_', ' ')
-                            if not tags:
-                                tags = []
+                #    cookie_setup = asyncio.run(tiktok_setup(cookie, handle=True))
+                #    # 使用与参考示例相同的方式处理标题和标签
+                #    if not title:
+                #        title = file.name.replace('.mp4', '').replace('_', ' ')
+                #    if not tags:
+                #        tags = []
                     
                     # 处理封面图片（与参考示例保持一致）
                     final_thumbnail_path = None
