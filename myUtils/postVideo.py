@@ -7,11 +7,11 @@ from pathlib import Path
 from conf import BASE_DIR
 from uploader.douyin_uploader.main import DouYinVideo
 from uploader.ks_uploader.main import KSVideo
-from uploader.tk_uploader.main import TiktokVideo
+from uploader.tk_uploader.main_chrome import tiktok_setup, TiktokVideo
 from uploader.tencent_uploader.main import TencentVideo
 from uploader.xiaohongshu_uploader.main import XiaoHongShuVideo
 from utils.constant import TencentZoneTypes
-from utils.files_times import generate_schedule_time_next_day
+from utils.files_times import generate_schedule_time_next_day, get_title_and_hashtags
 
 logger = logging.getLogger(__name__)
 
@@ -135,25 +135,44 @@ def post_video_TikTok(title, files, tags, account_file, category=TencentZoneType
                     logger.error(f"TikTok账号cookie文件不存在: {str(cookie)}")
                     continue
                 
-                # 处理封面图片
-                final_thumbnail_path = None
-                if thumbnail_path:
-                    # 如果提供了封面路径，使用该路径
-                    final_thumbnail_path = Path(BASE_DIR / "videoFile" / thumbnail_path)
-                    if not final_thumbnail_path.exists():
-                        logger.warning(f"指定的封面文件不存在: {str(final_thumbnail_path)}")
-                        final_thumbnail_path = None
-                
-                # 如果没有提供封面或封面不存在，尝试使用与视频同名的png文件
-                if not final_thumbnail_path:
-                    auto_thumbnail = file.parent / (file.stem + '.png')
-                    if auto_thumbnail.exists():
-                        final_thumbnail_path = auto_thumbnail
-                        logger.info(f"使用自动检测到的封面文件: {str(final_thumbnail_path)}")
-                
-                # 初始化TikTok视频上传类并执行上传
+                # 初始化cookie设置
                 try:
-                    app = TiktokVideo(title, str(file), tags, publish_datetimes[index], str(cookie), str(final_thumbnail_path) if final_thumbnail_path else None)
+                    cookie_setup = asyncio.run(tiktok_setup(cookie, handle=True))
+                    
+                    # 使用与参考示例相同的方式处理标题和标签
+                    # 如果没有提供标题和标签，则从文件名获取
+                    if not title or not tags:
+                        file_title, file_tags = get_title_and_hashtags(str(file))
+                        if not title:
+                            title = file_title
+                        if not tags:
+                            tags = file_tags
+                    
+                    # 处理封面图片（与参考示例保持一致）
+                    final_thumbnail_path = None
+                    # 如果提供了封面路径，使用该路径
+                    if thumbnail_path:
+                        final_thumbnail_path = Path(BASE_DIR / "videoFile" / thumbnail_path)
+                        if not final_thumbnail_path.exists():
+                            logger.warning(f"指定的封面文件不存在: {str(final_thumbnail_path)}")
+                            final_thumbnail_path = None
+                    
+                    # 如果没有提供封面或封面不存在，尝试使用与视频同名的png文件
+                    if not final_thumbnail_path:
+                        auto_thumbnail = file.parent / (file.stem + '.png')
+                        if auto_thumbnail.exists():
+                            final_thumbnail_path = auto_thumbnail
+                            logger.info(f"使用自动检测到的封面文件: {str(final_thumbnail_path)}")
+                    
+                    # 初始化TikTok视频上传类并执行上传
+                    print(f"video_file_name：{file}")
+                    print(f"video_title：{title}")
+                    print(f"video_hashtag：{tags}")
+                    if final_thumbnail_path and final_thumbnail_path.exists():
+                        print(f"thumbnail_file_name：{final_thumbnail_path}")
+                        app = TiktokVideo(title, file, tags, publish_datetimes[index], cookie, final_thumbnail_path)
+                    else:
+                        app = TiktokVideo(title, file, tags, publish_datetimes[index], cookie)
                     asyncio.run(app.main(), debug=False)
                     logger.info(f"TikTok视频发布成功: {file.name}")
                 except Exception as e:

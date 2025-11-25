@@ -527,7 +527,6 @@ def postVideo():
             post_video_ks(title, file_list, tags, account_list, category, enableTimer, videos_per_day, daily_times,
                       start_days)
         case 5:
-            # TikTok
             post_video_TikTok(title, file_list, tags, account_list, category, enableTimer, videos_per_day, daily_times,
                       start_days, thumbnail_path)
     # 返回响应给客户端

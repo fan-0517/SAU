@@ -29,13 +29,13 @@ async def cookie_auth_douyin(account_file):
             # 等待“扫码登录”元素出现，超时 5 秒（如果 5 秒没出现，说明 cookie 有效）
             try:
                 await page.get_by_text("扫码登录").wait_for(timeout=5000)
-                douyin_logger.error("[+] cookie 失效，需要扫码登录")
+                douyin_logger.error("[douyin] cookie 失效，需要扫码登录")
                 return False
             except:
                 douyin_logger.success("[douyin]  cookie 有效")
                 return True
         except:
-            douyin_logger.error("[+] 等待5秒 cookie 失效")
+            douyin_logger.error("[douyin] 等待5秒 cookie 失效")
             await context.close()
             await browser.close()
             return False
@@ -52,7 +52,7 @@ async def cookie_auth_tencent(account_file):
         await page.goto("https://channels.weixin.qq.com/platform/post/create")
         try:
             await page.wait_for_selector('div.title-name:has-text("微信小店")', timeout=5000)  # 等待5秒
-            tencent_logger.error("[+] 等待5秒 cookie 失效")
+            tencent_logger.error("[tencent] 等待5秒 cookie 失效")
             return False
         except:
             tencent_logger.success("[tencent] cookie 有效")
@@ -71,7 +71,7 @@ async def cookie_auth_ks(account_file):
         try:
             await page.wait_for_selector("div.names div.container div.name:text('机构服务')", timeout=5000)  # 等待5秒
 
-            kuaishou_logger.info("[+] 等待5秒 cookie 失效")
+            kuaishou_logger.info("[ks] 等待5秒 cookie 失效")
             return False
         except:
             kuaishou_logger.success("[ks] cookie 有效")
@@ -90,13 +90,13 @@ async def cookie_auth_xhs(account_file):
         try:
             await page.wait_for_url("https://creator.xiaohongshu.com/creator-micro/content/upload", timeout=5000)
         except:
-            print("[+] 等待5秒 cookie 失效")
+            print("[xhs] 等待5秒 cookie 失效")
             await context.close()
             await browser.close()
             return False
         # 2024.06.17 抖音创作者中心改版
         if await page.get_by_text('手机号登录').count() or await page.get_by_text('扫码登录').count():
-            print("[+] 等待5秒 cookie 失效")
+            print("[xhs] 等待5秒 cookie 失效")
             return False
         else:
             print("[xhs] cookie 有效")
@@ -118,13 +118,13 @@ async def cookie_auth_tiktok(account_file):
             # 检查是否需要登录
             try:
                 await page.get_by_text("Log in", timeout=30000)
-                tiktok_logger.error("[+] TikTok cookie 失效，需要登录")
+                tiktok_logger.error("[tiktok] TikTok cookie 失效，需要登录")
                 return False
             except:
                 tiktok_logger.success("[tiktok] cookie 有效")
                 return True
         except:
-            tiktok_logger.error("[+] 等待 TikTok 页面超时，cookie 可能失效")
+            tiktok_logger.error("[tiktok] 等待 TikTok 页面超时，cookie 可能失效")
             await context.close()
             await browser.close()
             return False
