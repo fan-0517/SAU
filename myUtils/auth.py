@@ -7,7 +7,7 @@ from xhs import XhsClient
 
 from conf import BASE_DIR, LOCAL_CHROME_HEADLESS
 from utils.base_social_media import set_init_script
-from utils.log import tencent_logger, kuaishou_logger, douyin_logger
+from utils.log import tencent_logger, kuaishou_logger, douyin_logger, xiaohongshu_logger
 from uploader.tk_uploader.main_chrome import tiktok_logger
 from uploader.ins_uploader.main_chrome import instagram_logger
 from pathlib import Path
@@ -91,17 +91,16 @@ async def cookie_auth_xhs(account_file):
         try:
             await page.wait_for_url("https://creator.xiaohongshu.com/creator-micro/content/upload", timeout=5000)
         except:
-            print("[xhs] 等待5秒 cookie 失效")
+            xiaohongshu_logger.error("[xhs] 等待5秒 cookie 失效")
             await context.close()
             await browser.close()
             return False
         # 2024.06.17 抖音创作者中心改版
         if await page.get_by_text('手机号登录').count() or await page.get_by_text('扫码登录').count():
-            print("[xhs] 等待5秒 cookie 失效")
+            xiaohongshu_logger.error("[xhs] 等待5秒 cookie 失效")
             return False
         else:
-            from uploader.xhs_uploader.main import xhs_logger
-            xhs_logger.success("[xhs] cookie 有效")
+            xiaohongshu_logger.success("[xhs] cookie 有效")
             return True
 
 
