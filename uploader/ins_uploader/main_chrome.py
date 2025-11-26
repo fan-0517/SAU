@@ -539,24 +539,17 @@ class InstagramVideo(object):
                 # 点击发布按钮
                 await publish_button.click()
                 instagram_logger.info("  [-] 已点击发布按钮")
-                
-                # 等待发布完成，发布成功后会跳转到内容日历页面
-                if "content_calendar" in page.url.lower():
-                    instagram_logger.success("  [-] video published success, detected content calendar in URL")
-                    break
+                break
             except Exception as e:
                 instagram_logger.exception(f"  [-] Exception: {e}")
                 instagram_logger.info(f"  [-] video publishing, current URL: {page.url}")
-                await asyncio.sleep(0.5)
-                wait_time += 0.5
+                break
         
         # 超时后检查URL
         if wait_time >= max_wait_time:
             instagram_logger.error(f"  [-] 发布超时，当前URL: {page.url}")
-            if "content_calendar" in page.url.lower():
-                instagram_logger.success("  [-] 虽然超时，但检测到内容日历页面，认为发布成功")
-            else:
-                raise Exception(f"发布超时，当前URL: {page.url}")
+            raise Exception(f"发布超时，当前URL: {page.url}")
+
 
     async def detect_upload_status(self, page):
         """
@@ -639,8 +632,7 @@ class InstagramVideo(object):
                     await self.handle_upload_error(page)
             except Exception as e:
                 instagram_logger.info(f"  [-] 上传中，错误: {str(e)}")
-                await asyncio.sleep(2)
-                wait_time += 2
+                break
         
         if wait_time >= max_wait_time:
             instagram_logger.error("  [-] 上传超时")
