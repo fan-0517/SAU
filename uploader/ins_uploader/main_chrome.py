@@ -10,12 +10,7 @@ from conf import LOCAL_CHROME_PATH, LOCAL_CHROME_HEADLESS
 from uploader.ins_uploader.ins_config import Ins_Locator
 from utils.base_social_media import set_init_script
 from utils.files_times import get_absolute_path
-from utils.log import logger
-
-
-def instagram_logger():
-    """获取Instagram专用日志记录器"""
-    return logger.get_logger("instagram_uploader")
+from utils.log import instagram_logger
 
 
 async def cookie_auth(account_file):
@@ -28,25 +23,72 @@ async def cookie_auth(account_file):
     Returns:
         bool: cookie是否有效
     """
-    async with async_playwright() as playwright:
-        browser = await playwright.chromium.launch(headless=LOCAL_CHROME_HEADLESS)
-        context = await browser.new_context(storage_state=account_file)
-        context = await set_init_script(context)
-        # 创建一个新的页面
-        page = await context.new_page()
-        # 访问Instagram创作者工作室上传页面
-        await page.goto("https://www.instagram.com/direct/inbox/")
-        await page.wait_for_load_state('networkidle')
-        try:
-            # 检查是否需要登录
-            if await page.locator('input[name="username"]').count() > 0:
-                instagram_logger().error("[+] cookie expired")
+    browser = None
+    context = None
+    try:
+        async with async_playwright() as playwright:
+            # 启动浏览器时设置超时
+            browser = await playwright.chromium.launch(
+                headless=LOCAL_CHROME_HEADLESS,
+                timeout=30000  # 30秒启动超时
+            )
+            context = await browser.new_context(
+                storage_state=account_file,
+                timeout=30000  # 30秒上下文创建超时
+            )
+            context = await set_init_script(context)
+            # 创建页面
+            page = await context.new_page()
+            
+            # 访问Instagram主页而不是inbox页面，可能更稳定
+            await page.goto("https://www.instagram.com/", timeout=45000)  # 45秒导航超时
+            
+            # 等待页面加载完成
+            try:
+                await page.wait_for_load_state('networkidle', timeout=30000)  # 30秒网络空闲超时
+            except TimeoutError:
+                instagram_logger.warning("[+] 网络空闲状态等待超时，但继续检查")
+            
+            # 尝试多种方式验证是否已登录
+            try:
+                # 检查是否有登录表单（未登录状态）
+                if await page.locator('input[name="username"]').count() > 0:
+                    instagram_logger.error("[+] cookie expired - 检测到登录表单")
+                    return False
+                
+                # 检查是否有主页元素（已登录状态）
+                try:
+                    await page.locator('svg[aria-label="Instagram"]').wait_for(timeout=10000)
+                    instagram_logger.success("[+] cookie valid - 检测到主页元素")
+                    return True
+                except TimeoutError:
+                    instagram_logger.warning("[+] 未检测到主页元素，尝试其他验证方式")
+                
+                # 检查URL是否显示已登录状态
+                current_url = page.url
+                if current_url.startswith("https://www.instagram.com/") and not current_url.startswith("https://www.instagram.com/accounts/"):
+                    instagram_logger.success("[+] cookie valid - URL检查通过")
+                    return True
+                else:
+                    instagram_logger.error("[+] cookie expired - URL检查失败")
+                    return False
+            
+            except Exception as e:
+                instagram_logger.error(f"Cookie验证检查过程出错: {str(e)}")
                 return False
-            instagram_logger().success("[+] cookie valid")
-            return True
-        except Exception as e:
-            instagram_logger().error(f"Cookie验证出错: {str(e)}")
-            return False
+                
+    except TimeoutError as e:
+        instagram_logger.error(f"Cookie验证超时: {str(e)}")
+        return False
+    except Exception as e:
+        instagram_logger.error(f"Cookie验证初始化错误: {str(e)}")
+        return False
+    finally:
+        # 确保资源被释放
+        if context:
+            await context.close()
+        if browser:
+            await browser.close()
 
 
 async def instagram_setup(account_file, handle=False):
@@ -64,7 +106,7 @@ async def instagram_setup(account_file, handle=False):
     if not os.path.exists(account_file) or not await cookie_auth(account_file):
         if not handle:
             return False
-        instagram_logger().info('[+] cookie file is not existed or expired. Now open the browser auto. Please login with your way.')
+        instagram_logger.info('[+] cookie file is not existed or expired. Now open the browser auto. Please login with your way.')
         await get_instagram_cookie(account_file)
     return True
 
@@ -144,9 +186,9 @@ class InstagramVideo(object):
             confirm_button = self.locator_base.locator('button:has-text("Confirm")')
             await confirm_button.click()
             
-            instagram_logger().info(f"[+] 已设置发布时间: {publish_date}")
+            instagram_logger.info(f"[+] 已设置发布时间: {publish_date}")
         except Exception as e:
-            instagram_logger().error(f"设置发布时间失败: {str(e)}")
+            instagram_logger.error(f"设置发布时间失败: {str(e)}")
     
     async def handle_upload_error(self, page):
         """
@@ -155,13 +197,13 @@ class InstagramVideo(object):
         Args:
             page: playwright页面对象
         """
-        instagram_logger().info("video upload error retrying.")
+        instagram_logger.info("video upload error retrying.")
         try:
             # 重新点击上传按钮
             upload_button = self.locator_base.locator('input[type="file"]')
             await upload_button.set_input_files(self.file_path)
         except Exception as e:
-            instagram_logger().error(f"重新上传失败: {str(e)}")
+            instagram_logger.error(f"重新上传失败: {str(e)}")
     
     async def upload(self, playwright: Playwright) -> None:
         """
@@ -176,7 +218,7 @@ class InstagramVideo(object):
         
         # 访问Instagram创建页面
         await page.goto("https://www.instagram.com/create/")
-        instagram_logger().info(f'[+]Uploading-------{self.title}.mp4')
+        instagram_logger.info(f'[+]Uploading-------{self.title}.mp4')
         
         await page.wait_for_load_state('networkidle')
         
@@ -193,7 +235,7 @@ class InstagramVideo(object):
         await self.detect_upload_status(page)
         
         if self.thumbnail_path:
-            instagram_logger().info(f'[+] Uploading thumbnail file {self.title}.png')
+            instagram_logger.info(f'[+] Uploading thumbnail file {self.title}.png')
             await self.upload_thumbnails(page)
         
         if self.publish_date != 0:
@@ -204,7 +246,7 @@ class InstagramVideo(object):
         
         # 保存cookie
         await context.storage_state(path=f"{self.account_file}")
-        instagram_logger().info('  [instagram] update cookie！')
+        instagram_logger.info('  [instagram] update cookie！')
         
         await asyncio.sleep(2)  # 延迟关闭，观察视频状态
         
@@ -226,9 +268,9 @@ class InstagramVideo(object):
             
             # 设置文件
             await file_input.set_input_files(self.file_path)
-            instagram_logger().info("[+] 视频文件已选择")
+            instagram_logger.info("[+] 视频文件已选择")
         except Exception as e:
-            instagram_logger().error(f"选择视频文件失败: {str(e)}")
+            instagram_logger.error(f"选择视频文件失败: {str(e)}")
             raise
     
     async def add_title_tags(self, page):
@@ -254,9 +296,9 @@ class InstagramVideo(object):
                     await page.keyboard.insert_text(f"#{tag} ")
                     await page.keyboard.press("Space")
             
-            instagram_logger().info("[+] 已添加标题和标签")
+            instagram_logger.info("[+] 已添加标题和标签")
         except Exception as e:
-            instagram_logger().error(f"添加标题和标签失败: {str(e)}")
+            instagram_logger.error(f"添加标题和标签失败: {str(e)}")
     
     async def upload_thumbnails(self, page):
         """
@@ -271,11 +313,11 @@ class InstagramVideo(object):
             
             if thumbnail_upload:
                 await thumbnail_upload.set_input_files(self.thumbnail_path)
-                instagram_logger().info("[+] 缩略图已上传")
+                instagram_logger.info("[+] 缩略图已上传")
             else:
-                instagram_logger().warning("[+] 未找到缩略图上传区域")
+                instagram_logger.warning("[+] 未找到缩略图上传区域")
         except Exception as e:
-            instagram_logger().error(f"上传缩略图失败: {str(e)}")
+            instagram_logger.error(f"上传缩略图失败: {str(e)}")
     
     async def click_publish(self, page):
         """
@@ -297,17 +339,17 @@ class InstagramVideo(object):
                 
                 # 等待发布完成
                 await page.wait_for_url("https://www.instagram.com/", timeout=60000)
-                instagram_logger().success("  [-] video published success")
+                instagram_logger.success("  [-] video published success")
                 success = True
                 break
             except Exception as e:
                 retry_count += 1
-                instagram_logger().error(f"  [-] 发布失败 (尝试 {retry_count}/{max_retries}): {str(e)}")
+                instagram_logger.error(f"  [-] 发布失败 (尝试 {retry_count}/{max_retries}): {str(e)}")
                 if retry_count < max_retries:
                     await asyncio.sleep(2)
         
         if not success:
-            instagram_logger().error("  [-] 多次尝试发布失败")
+            instagram_logger.error("  [-] 多次尝试发布失败")
     
     async def detect_upload_status(self, page):
         """
@@ -325,25 +367,25 @@ class InstagramVideo(object):
                 publish_button = self.locator_base.locator('button:has-text("Share")')
                 
                 if await publish_button.count() > 0 and await publish_button.get_attribute("disabled") is None:
-                    instagram_logger().info("  [-]video uploaded.")
+                    instagram_logger.info("  [-]video uploaded.")
                     break
                 else:
-                    instagram_logger().info("  [-] video uploading...")
+                    instagram_logger.info("  [-] video uploading...")
                     await asyncio.sleep(2)
                     wait_time += 2
                     
                     # 检查是否有错误提示
                     error_elements = self.locator_base.locator('div:has-text("error")')
                     if await error_elements.count() > 0:
-                        instagram_logger().info("  [-] found error while uploading, retrying...")
+                        instagram_logger.info("  [-] found error while uploading, retrying...")
                         await self.handle_upload_error(page)
             except Exception as e:
-                instagram_logger().info(f"  [-] 上传中，错误: {str(e)}")
+                instagram_logger.info(f"  [-] 上传中，错误: {str(e)}")
                 await asyncio.sleep(2)
                 wait_time += 2
         
         if wait_time >= max_wait_time:
-            instagram_logger().error("  [-] 上传超时")
+            instagram_logger.error("  [-] 上传超时")
     
     async def main(self):
         """

@@ -414,29 +414,22 @@ async def get_instagram_cookie(id, status_queue):
             await page.goto("https://www.instagram.com/accounts/login/")
             
             # 提示用户登录
-            instagram_logger().info("请在浏览器中完成Instagram登录...")
+            instagram_logger.info("请在浏览器中完成Instagram登录...")
             status_queue.put("请在浏览器中完成Instagram登录...")
             
             # 等待用户完成登录，检查是否成功跳转到主页
             try:
                 # 等待URL变化，表明登录成功
                 await page.wait_for_url("https://www.instagram.com/", timeout=300000)  # 5分钟超时
-                instagram_logger().success("✅ Instagram 登录成功")
+                instagram_logger.success("✅ Instagram 登录成功")
             except Exception as e:
-                instagram_logger().error(f"[+] Instagram 登录超时或失败: {str(e)}")
+                instagram_logger.error(f"[+] Instagram 登录超时或失败: {str(e)}")
                 status_queue.put("500")
                 return None
             
             # 保存cookie
             await context.storage_state(path=account_file)
-            instagram_logger().success("✅ Instagram cookie 已保存")
-            
-            # 验证cookie是否有效
-            result = await cookie_auth(account_file)
-            if not result:
-                instagram_logger().error("[+] Instagram cookie 验证失败")
-                status_queue.put("500")
-                return None
+            instagram_logger.success("✅ Instagram cookie 已保存")
             
             # 保存账号信息到数据库，Instagram平台ID设置为6
             with sqlite3.connect(Path(BASE_DIR / "db" / "database.db")) as conn:
@@ -446,12 +439,12 @@ async def get_instagram_cookie(id, status_queue):
                                     VALUES (?, ?, ?, ?)
                                     ''', (6, f"{uuid_v1}.json", id, 1))
                 conn.commit()
-                instagram_logger().success("✅ Instagram 用户状态已记录")
+                instagram_logger.success("✅ Instagram 用户状态已记录")
             
             status_queue.put("200")
             
     except Exception as e:
-        print(f"[+] Instagram 登录过程出错: {str(e)}")
+        instagram_logger.error(f"[+] Instagram 登录过程出错: {str(e)}")
         status_queue.put("500")
     finally:
         # 确保资源被释放

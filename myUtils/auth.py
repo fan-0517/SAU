@@ -100,7 +100,8 @@ async def cookie_auth_xhs(account_file):
             print("[xhs] 等待5秒 cookie 失效")
             return False
         else:
-            print("[xhs] cookie 有效")
+            from uploader.xhs_uploader.main import xhs_logger
+            xhs_logger.success("[xhs] cookie 有效")
             return True
 
 
@@ -155,13 +156,13 @@ async def cookie_auth_instagram(account_file):
             # 检查是否需要登录
             try:
                 await page.get_by_text("Log in", timeout=15000)
-                instagram_logger.error("[instagram] Instagram cookie 失效，需要登录")
+                instagram_logger.error("[instagram] cookie 失效，需要登录")
                 return False
             except:
                 instagram_logger.success("[instagram] cookie 有效")
                 return True
         except:
-            instagram_logger.error("[instagram] 等待 Instagram 页面超时，cookie 可能失效")
+            instagram_logger.error("[instagram] 等待页面超时，cookie 可能失效")
             await context.close()
             await browser.close()
             return False
