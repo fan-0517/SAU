@@ -70,6 +70,11 @@ const websiteData = ref([
     platform: 'TikTok',
     url: 'https://www.tiktok.com',
     status: 'active'
+  },
+  {
+    platform: 'Instagram',
+    url: 'https://www.instagram.com',
+    status: 'active'
   }
 ])
 
