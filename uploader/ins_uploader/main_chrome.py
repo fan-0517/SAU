@@ -274,6 +274,11 @@ class InstagramVideo(object):
                     # 检查当前URL
                     current_url = page.url
                     instagram_logger.info(f"[+]点击后当前URL: {current_url}")
+                    # 检查是否成功跳转到创作中心
+                    if "latest/composer" in current_url:
+                        instagram_logger.info("[+]成功跳转到创作中心")
+                    else:
+                        instagram_logger.warning("[+]跳转后URL未包含创作中心路径，可能登录失败")
             except Exception as e:
                 instagram_logger.error(f"[+]处理登录页面时出错: {str(e)}")
                 # 出错后尝试直接导航回创作中心
@@ -286,19 +291,28 @@ class InstagramVideo(object):
         # 确保最终在正确的创作中心页面
         await page.goto("https://business.facebook.com/latest/composer")
         await page.wait_for_load_state('networkidle')
-        instagram_logger.info("[+]Meta Business Suite composer page loaded.")
+        # 打印当前URL
+        instagram_logger.info(f"[+]Current URL after goto composer page: {page.url}")
 
         # 选择基本定位器
         await self.choose_base_locator(page)
+        # 打印当前URL
+        instagram_logger.info(f"[+]Current URL after choose base locator: {page.url}")
 
         # 上传视频文件
         await self.upload_video_file(page)
+        # 打印当前URL
+        instagram_logger.info(f"[+]Current URL after upload video file: {page.url}")
         
         # 检测上传状态
         await self.detect_upload_status(page)
+        # 打印当前URL
+        instagram_logger.info(f"[+]Current URL after detect upload status: {page.url}")
         
         # 添加标题和标签
         await self.add_title_tags(page)
+        # 打印当前URL
+        instagram_logger.info(f"[+]Current URL after add title tags: {page.url}")
 
         if self.thumbnail_path:
             instagram_logger.info(f'[+] Uploading thumbnail file {self.title}.png')
@@ -327,22 +341,38 @@ class InstagramVideo(object):
         try:
             # 根据Meta Business Suite截图，使用正确的上传按钮选择器
             upload_buttons = [
-                # 匹配"Add photo/video"按钮
-                'button:has-text("Add photo/video")',
+                # 精确匹配实际元素：div[role="button"] 包含 "Add photo/video" 文本
+                'div[role="button"]:has-text("Add photo/video")',
+                # 其他可能的文本变体
+                'div[role="button"]:has-text("Add photo")',
+                'div[role="button"]:has-text("Add video")',
+                'div[role="button"]:has-text("Upload photo/video")',
+                'div[role="button"]:has-text("Upload photo")',
+                'div[role="button"]:has-text("Upload video")',
+                # 兼容传统button元素
                 'button:has-text("Add photo/video")',
                 'button:has-text("Add photo")',
                 'button:has-text("Add video")',
                 'button:has-text("Upload photo/video")',
                 'button:has-text("Upload photo")',
                 'button:has-text("Upload video")',
-                # 基于aria-label的选择器
+                # 基于aria-label的选择器（同时支持div和button）
+                '[role="button"][aria-label="Add photo/video"]',
+                '[role="button"][aria-label="Add photo"]',
+                '[role="button"][aria-label="Add video"]',
                 'button[aria-label="Add photo/video"]',
                 'button[aria-label="Add photo"]',
                 'button[aria-label="Add video"]',
-                # 基于data-testid的选择器
+                # 基于data-testid的选择器（同时支持div和button）
+                '[role="button"][data-testid="add-photo-video-button"]',
+                '[role="button"][data-testid="upload-photo-video-button"]',
                 'button[data-testid="add-photo-video-button"]',
                 'button[data-testid="upload-photo-video-button"]',
-                # 基于类名的选择器
+                # 基于类名的选择器（同时支持div和button）
+                '[role="button"][class*="add-photo"]',
+                '[role="button"][class*="add-video"]',
+                '[role="button"][class*="upload-photo"]',
+                '[role="button"][class*="upload-video"]',
                 'button[class*="add-photo"]',
                 'button[class*="add-video"]',
                 'button[class*="upload-photo"]',
@@ -409,7 +439,19 @@ class InstagramVideo(object):
         try:
             # 根据Meta Business Suite截图，使用正确的文本输入框选择器
             caption_selectors = [
-                # 匹配"Text"输入框
+                # 优先匹配Instagram特有的可编辑div输入框（根据提供的HTML结构）
+                'div[role="combobox"][contenteditable="true"][aria-label*="Write into the dialogue box"]',
+                'div[role="combobox"][contenteditable="true"][aria-label*="Write something"]',
+                
+                # 通用可编辑div选择器（支持其他平台）
+                'div[contenteditable="true"][role="combobox"]',
+                'div[contenteditable="true"][aria-label*="caption"]',
+                'div[contenteditable="true"][aria-label*="text"]',
+                'div[contenteditable="true"][aria-label*="Write"]',
+                'div[contenteditable="true"][class*="caption"]',
+                'div[contenteditable="true"][class*="text"]',
+                
+                # 传统textarea选择器（兼容旧版界面）
                 'textarea[placeholder="Text"]',
                 'textarea[placeholder="Write something..."]',
                 'textarea[placeholder="Write a caption..."]',
@@ -418,20 +460,26 @@ class InstagramVideo(object):
                 'textarea[name="text"]',
                 'textarea[id="caption"]',
                 'textarea[id="text"]',
-                # 基于aria-label的选择器
+                
+                # 基于aria-label的textarea选择器
                 'textarea[aria-label="Text"]',
                 'textarea[aria-label="Caption"]',
                 'textarea[aria-label="Write something"]',
+                
                 # 基于data-testid的选择器
                 'textarea[data-testid="caption-input"]',
                 'textarea[data-testid="text-input"]',
-                # 基于类名的选择器
-                'textarea[class*="caption"]',
-                'textarea[class*="text"]',
-                # 基于父容器的选择器
+                'div[data-testid*="caption"][contenteditable="true"]',
+                'div[data-testid*="text"][contenteditable="true"]',
+                
+                # 基于类名和父容器的选择器
                 'div[class*="post-details"] textarea',
+                'div[class*="post-details"] div[contenteditable="true"]',
                 'div[class*="text-section"] textarea',
-                # 直接的textarea（作为后备）
+                'div[class*="text-section"] div[contenteditable="true"]',
+                
+                # 最终后备选择器
+                'div[contenteditable="true"]',
                 'textarea'
             ]
             
@@ -554,27 +602,63 @@ class InstagramVideo(object):
             try:
                 # Meta Business Suite的发布按钮可能有不同的选择器
                 publish_selectors = [
-                    # 优先匹配"Publish"按钮（根据截图）
+                    # 优先匹配Instagram特有的div发布按钮（根据提供的HTML结构）
+                    'div[role="button"][id*="js_"]',
+                    'div[role="button"][id*="js_"]:not([aria-disabled="true"])',
+                    'div[role="button"][id*="js_"]:not([disabled])',
+                    
+                    # 基于文本内容的选择器（支持div和button）
+                    '*[role="button"]:has(:text("Publish"))',
+                    '*[role="button"]:has(:text("Publish")):not([disabled])',
+                    '*:has-text("Publish"):not([disabled])',
+                    
+                    '*[role="button"]:has(:text("Post"))',
+                    '*[role="button"]:has(:text("Post")):not([disabled])',
+                    '*:has-text("Post"):not([disabled])',
+                    
+                    '*[role="button"]:has(:text("Share"))',
+                    '*[role="button"]:has(:text("Share")):not([disabled])',
+                    '*:has-text("Share"):not([disabled])',
+                    
+                    # 传统button元素选择器（兼容旧版界面）
                     'button:has-text("Publish")',
                     'button:has-text("Publish"):not([disabled])',
-                    # 其他可能的发布按钮文本
                     'button:has-text("Post")',
                     'button:has-text("Post"):not([disabled])',
                     'button:has-text("Share")',
                     'button:has-text("Share"):not([disabled])',
-                    # 基于位置的选择器（根据截图，发布按钮在底部按钮组）
+                    
+                    # 基于位置的选择器（支持div和button）
+                    'div.button-group *[role="button"]',
                     'div.button-group button',
+                    'div[class*="button-group"] *[role="button"]',
                     'div[class*="button-group"] button',
+                    'div[class*="action-buttons"] *[role="button"]',
                     'div[class*="action-buttons"] button',
+                    'div[class*="bottom-buttons"] *[role="button"]',
                     'div[class*="bottom-buttons"] button',
-                    # 基于类名的选择器
+                    
+                    # 基于类名的选择器（支持div和button）
+                    '*[role="button"][class*="publish"]',
                     'button[class*="publish"]',
+                    '*[role="button"][class*="post"]',
                     'button[class*="post"]',
+                    '*[role="button"][class*="share"]',
                     'button[class*="share"]',
-                    # 基于aria-label的选择器
+                    
+                    # 基于aria-label的选择器（支持div和button）
+                    '*[role="button"][aria-label="Publish"]',
                     'button[aria-label="Publish"]',
+                    '*[role="button"][aria-label="Post"]',
                     'button[aria-label="Post"]',
-                    'button[aria-label="Share"]'
+                    '*[role="button"][aria-label="Share"]',
+                    'button[aria-label="Share"]',
+                    
+                    # 基于Instagram特有类名的选择器
+                    'div.x1i10hfl.xjqpnuy.xc5r6h4.xqeqjp1.x1phubyo.x972fbf.x10w94by.x1qhh985.x14e42zd.x9f619.x1ypdohk.x3ct3a4.xdj266r.x14z9mp.xat24cr.x1lziwak.x2lwn1j.xeuugli[role="button"]',
+                    
+                    # 最终后备选择器
+                    '*[role="button"]:not([disabled])'
                 ]
                 
                 publish_button = None
