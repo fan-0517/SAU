@@ -10,8 +10,8 @@ from flask_cors import CORS
 from myUtils.auth import check_cookie, cookie_auth_tiktok
 from flask import Flask, request, jsonify, Response, render_template, send_from_directory
 from conf import BASE_DIR
-from myUtils.login import douyin_cookie_gen, get_tencent_cookie, get_ks_cookie, xiaohongshu_cookie_gen, get_tiktok_cookie, get_instagram_cookie
-from myUtils.postVideo import post_video_tencent, post_video_DouYin, post_video_ks, post_video_xhs, post_video_TikTok, post_video_Instagram
+from myUtils.login import douyin_cookie_gen, get_tencent_cookie, get_ks_cookie, xiaohongshu_cookie_gen, get_tiktok_cookie, get_instagram_cookie, get_facebook_cookie
+from myUtils.postVideo import post_video_tencent, post_video_DouYin, post_video_ks, post_video_xhs, post_video_TikTok, post_video_Instagram, post_video_Facebook
 
 active_queues = {}
 app = Flask(__name__)
@@ -564,6 +564,9 @@ def postVideo():
         case 6:
             post_video_Instagram(title, file_list, tags, account_list, category, enableTimer, videos_per_day, daily_times,
                       start_days, thumbnail_path)
+        case 7:
+            post_video_Facebook(title, file_list, tags, account_list, category, enableTimer, videos_per_day, daily_times,
+                      start_days, thumbnail_path)
     # 返回响应给客户端
     return jsonify(
         {
@@ -658,6 +661,10 @@ def postVideoBatch():
                 print(f'[+] Batch publishing to Instagram')
                 # Instagram
                 post_video_Instagram(title, file_list, tags, account_list, enableTimer, videos_per_day, daily_times, start_days)
+            case 7:
+                print(f'[+] Batch publishing to Facebook')
+                # Facebook
+                post_video_Facebook(title, file_list, tags, account_list, enableTimer, videos_per_day, daily_times, start_days)
     # 返回响应给客户端
     return jsonify(
         {
@@ -819,6 +826,11 @@ def run_async_function(type,id,status_queue):
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
             loop.run_until_complete(get_instagram_cookie(id,status_queue))
+            loop.close()
+        case '7':
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            loop.run_until_complete(get_facebook_cookie(id,status_queue))
             loop.close()
 
 # SSE 流生成器函数

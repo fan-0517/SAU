@@ -166,12 +166,47 @@ async def cookie_auth_instagram(account_file):
             await browser.close()
             return False
 
+async def cookie_auth_facebook(account_file):
+    """
+    验证Facebook账号Cookie是否有效
+    
+    Args:
+        account_file: Cookie文件路径
+    
+    Returns:
+        bool: Cookie是否有效
+    """
+    async with async_playwright() as playwright:
+        browser = await playwright.chromium.launch(headless=True)
+        context = await browser.new_context(storage_state=account_file)
+        context = await set_init_script(context)
+        # 创建一个新的页面
+        page = await context.new_page()
+        # 访问Facebook主页
+        await page.goto("https://www.facebook.com/")
+        try:
+            # 等待页面加载完成
+            await page.wait_for_url("https://www.facebook.com/", timeout=30000)
+            # 检查是否需要登录
+            try:
+                await page.get_by_text("Log in", timeout=15000)
+                tiktok_logger.error("[facebook] cookie 失效，需要登录")
+                return False
+            except:
+                tiktok_logger.success("[facebook] cookie 有效")
+                return True
+        except:
+            tiktok_logger.error("[facebook] 等待页面超时，cookie 可能失效")
+            await context.close()
+            await browser.close()
+            return False
+
 async def check_cookie(type, file_path):
     """
     根据平台类型验证Cookie有效性
     
     Args:
-        type: 平台类型 (1:小红书, 2:腾讯视频号, 3:抖音, 4:快手, 5:TikTok, 6:Instagram)
+        type: 平台类型 (1:小红书, 2:腾讯视频号, 3:抖音, 4:快手, 5:TikTok, 6:Instagram, 7:Facebook)
         file_path: Cookie文件路径
     
     Returns:
@@ -196,6 +231,9 @@ async def check_cookie(type, file_path):
         # Instagram
         case 6:
             return await cookie_auth_instagram(Path(BASE_DIR / "cookiesFile" / file_path))
+        # Facebook
+        case 7:
+            return await cookie_auth_facebook(Path(BASE_DIR / "cookiesFile" / file_path))
         case _:
             return False
 
