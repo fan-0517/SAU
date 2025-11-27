@@ -549,7 +549,8 @@ const platforms = [
   { key: 2, name: '视频号' },
   { key: 1, name: '小红书' },
   { key: 5, name: 'TikTok' },
-  { key: 6, name: 'Instagram' }
+  { key: 6, name: 'Instagram' },
+  { key: 7, name: 'Facebook' }
 ]
 
 const defaultTabInit = {
@@ -604,7 +605,8 @@ const availableAccounts = computed(() => {
     1: '小红书',
     4: '快手',
     5: 'TikTok',
-    6: 'Instagram'
+    6: 'Instagram',
+    7: 'Facebook'
   }
   const currentPlatform = currentTab.value ? platformMap[currentTab.value.selectedPlatform] : null
   return currentPlatform ? accountStore.accounts.filter(acc => acc.platform === currentPlatform) : []

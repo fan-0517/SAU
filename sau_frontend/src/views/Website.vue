@@ -75,6 +75,11 @@ const websiteData = ref([
     platform: 'Instagram',
     url: 'https://www.instagram.com',
     status: 'active'
+  },
+  {
+    platform: 'Facebook',
+    url: 'https://www.facebook.com',
+    status: 'active'
   }
 ])
 
