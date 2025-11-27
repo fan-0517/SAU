@@ -18,7 +18,7 @@ async def cookie_auth(account_file):
     """
     async with async_playwright() as playwright:
         # 设置本地Chrome浏览器路径
-        browser = await playwright.chromium.launch(headless= LOCAL_CHROME_HEADLESS)
+        browser = await playwright.chromium.launch(headless= LOCAL_CHROME_HEADLESS, executable_path=self.local_executable_path)
         context = await browser.new_context(storage_state=account_file)
         context = await set_init_script(context)
         # 创建一个新的页面
@@ -164,18 +164,48 @@ class FacebookVideo(object):
 
     async def handle_upload_error(self, page):
         """
-        处理上传错误
+        作用：处理上传错误，重新上传
+        网页中相关按钮：系统文件管理器的上传按钮（input[type="file"]）
         """
-        logger.info("video upload error retrying.")
-        select_file_button = page.locator("//span[text()='Add Photos/Videos']")
-        async with page.expect_file_chooser() as fc_info:
-            await select_file_button.click()
-        file_chooser = await fc_info.value
-        await file_chooser.set_files(self.file_path)
+        instagram_logger.info("video upload error retrying.")
+        try:
+            # 重新选择文件
+            upload_button = self.locator_base.locator('input[type="file"]')
+            await upload_button.set_input_files(self.file_path)
+        except Exception as e:
+            instagram_logger.error(f"重新上传失败: {str(e)}")
+    
+    async def upload_video_file(self, page):
+        """
+        作用：上传视频文件
+        网页中相关按钮：上传视频文件的按钮元素为（div[aria-label='照片/视频']:visible）
+        """
+        try:
+            # 点击上传按钮（照片/视频），使用指定的选择器
+            upload_selector = "div[aria-label='照片/视频']:visible"
+            
+            upload_button = self.locator_base.locator(upload_selector)
+            await upload_button.wait_for(state='visible', timeout=30000)
+            
+            logger.info(f"[+] 找到照片/视频上传按钮，选择器: {upload_selector}")
+            await upload_button.click()
+            logger.info("[+] 成功点击照片/视频上传按钮")
+            
+            # 上传按钮，需要点击触发系统文件选择器
+            async with page.expect_file_chooser() as fc_info:
+                await upload_element.click()
+                instagram_logger.info("[+] 点击上传按钮，等待系统文件选择器")
+            file_chooser = await fc_info.value
+            await file_chooser.set_files(self.file_path)
+            instagram_logger.info("[+] 通过系统文件选择器设置文件")
+            instagram_logger.info("[+] 视频文件已选择")
+        except Exception as e:
+            logger.error(f"选择视频文件失败: {str(e)}")
+            raise
 
     async def upload(self, playwright: Playwright) -> None:
         """
-        执行视频上传
+        作用：执行视频上传
         """
         browser = await playwright.chromium.launch(
             headless=self.headless, 
@@ -194,19 +224,8 @@ class FacebookVideo(object):
         # 选择基础定位器
         self.choose_base_locator(page)
 
-        # 点击上传按钮，使用指定的选择器
-        upload_button = self.locator_base.locator(
-            "div[aria-label='照片/视频']:visible"
-        )
-        await upload_button.wait_for(state='visible', timeout=30000)
-        await upload_button.click()
-        logger.info("成功点击上传按钮")
-
         # 上传视频文件
-        async with page.expect_file_chooser() as fc_info:
-            await upload_button.click()
-        file_chooser = await fc_info.value
-        await file_chooser.set_files(self.file_path)
+        await self.upload_video_file(page)
 
         # 添加标题和标签
         await self.add_title_tags(page)
@@ -239,7 +258,8 @@ class FacebookVideo(object):
 
     async def add_title_tags(self, page):
         """
-        添加标题和标签
+        作用：添加标题和标签
+        网页中相关按钮：添加标题和标签的按钮选择器（）
         """
         # 使用更通用的选择器定位标题输入框，支持中文和英文界面
         editor_locators = [
@@ -281,7 +301,8 @@ class FacebookVideo(object):
 
     async def upload_thumbnails(self, page):
         """
-        上传缩略图
+        作用：上传缩略图
+        网页中相关按钮：上传缩略图的按钮选择器（）
         """
         try:
             # 等待并点击缩略图上传按钮
@@ -300,7 +321,8 @@ class FacebookVideo(object):
 
     async def click_publish(self, page):
         """
-        点击发布按钮
+        作用：点击发布按钮
+        网页中相关按钮：发布按钮选择器（）
         """
         while True:
             try:
@@ -345,23 +367,37 @@ class FacebookVideo(object):
 
     async def detect_upload_status(self, page):
         """
-        检测上传状态
+        作用：检测上传状态
+        网页中相关按钮：发布按钮选择器（）
         """
         while True:
             try:
+                # 匹配中文发帖按钮和英文发布按钮，与click_publish方法保持一致
+                publish_button = self.locator_base.locator('//span[text()="发帖"]').or_(
+                    self.locator_base.locator('//span[text()="Post"]').or_(
+                        self.locator_base.locator('//span[text()="Schedule"]').or_(
+                            self.locator_base.locator('//span[text()="发布"]')
+                        )
+                    )
+                )
+                
                 # 检查发布按钮是否可点击
-                if await self.locator_base.locator(
-                        '//span[text()="Post"]').get_attribute("disabled") is None:
+                if await publish_button.get_attribute("disabled") is None:
                     logger.info("  [-]video uploaded.")
                     break
                 else:
                     logger.info("  [-] video uploading...")
                     await asyncio.sleep(2)
-                    # 检查是否有错误需要重试
-                    if await self.locator_base.locator(
-                            "//span[text()='Add Photos/Videos']").count():
-                        logger.info("  [-] found some error while uploading now retry...")
-                        await self.handle_upload_error(page)
+                    # 检查是否有错误需要重试，使用中文和英文选择器
+                    add_file_buttons = [
+                        "//span[text()='添加照片/视频']",
+                        "//span[text()='Add Photos/Videos']"
+                    ]
+                    for selector in add_file_buttons:
+                        if await self.locator_base.locator(selector).count():
+                            logger.info("  [-] found some error while uploading now retry...")
+                            await self.handle_upload_error(page)
+                            break
             except Exception as e:
                 logger.info(f"  [-] video uploading... Error: {str(e)}")
                 await asyncio.sleep(2)
@@ -377,9 +413,9 @@ class FacebookVideo(object):
         """
         主入口函数
         """
-        # 验证cookie
-        if not await facebook_setup(self.account_file, handle=True):
-            raise Exception("Cookie验证失败")
+        # 验证cookie(可有可无)
+        #if not await facebook_setup(self.account_file, handle=True):
+        #    raise Exception("Cookie验证失败")
 
         # 执行上传
         async with async_playwright() as playwright:
