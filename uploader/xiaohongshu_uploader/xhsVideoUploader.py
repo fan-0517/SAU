@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Facebook平台视频上传核心实现
+xhs平台视频上传核心实现
 """
 import os
 import asyncio
@@ -9,7 +9,7 @@ from playwright.async_api import Playwright, async_playwright
 from conf import LOCAL_CHROME_PATH, LOCAL_CHROME_HEADLESS
 from utils.base_social_media import set_init_script
 from utils.files_times import get_absolute_path
-from utils.log import facebook_logger as logger
+from utils.log import xhs_logger as logger
 
 
 class xhsVideoUploader(object):
@@ -29,7 +29,7 @@ class xhsVideoUploader(object):
         self.text = text
         
         # URL constants
-        self.xiaohongshu_url = "https://creator.xiaohongshu.com/publish/publish?from=homepage&target=video&openFilePicker=true"
+        self.xhs_url = "https://creator.xiaohongshu.com/publish/publish?from=homepage&target=video&openFilePicker=true"
         self.personal_url = "https://creator.xiaohongshu.com/new/home"
         self.login_url = "https://creator.xiaohongshu.com/login"
         
@@ -79,24 +79,24 @@ class xhsVideoUploader(object):
         self.cookie_expired_msg = "[+] cookie expired - not redirect to personal center"
         self.cookie_validation_error_msg = "[+] cookie validation error"
         self.cookie_file_not_exist_msg = "[+] cookie file is not existed or expired. Now open the browser auto. Please login."
-        self.login_prompt_msg = "请登录Facebook账户..."
+        self.login_prompt_msg = "请登录xhs账户..."
         self.cookie_saved_msg = "Cookie已保存到"
         
         # Upload process messages
-        self.upload_success_msg = "✅ 【Facebook】视频发布成功"
+        self.upload_success_msg = "✅ 【xhs】视频发布成功"
         self.start_upload_msg = "[+]Start Uploading-------"
-        self.browser_created_msg = "step1：【Facebook】浏览器实例已创建"
-        self.context_created_msg = "step2：【Facebook】上下文已创建并加载cookie"
-        self.page_loaded_msg = "step3：【Facebook】创作中心页面已加载完成"
-        self.locator_selected_msg = "step4：【Facebook】基础定位器已选择"
-        self.video_uploaded_msg = "step5：【Facebook】视频文件已上传"
-        self.upload_status_checked_msg = "step6：【Facebook】视频上传状态检测完成"
-        self.title_tags_added_msg = "step7：【Facebook】标题和标签已添加"
-        self.thumbnail_uploaded_msg = "step8：【Facebook】缩略图已上传"
-        self.schedule_set_msg = "step9：【Facebook】定时发布时间已设置"
-        self.video_published_msg = "step10：【Facebook】视频已发布"
-        self.cookie_updated_msg = "step11：【Facebook】cookie已更新"
-        self.browser_closed_msg = "step12：【Facebook】浏览器实例已关闭"
+        self.browser_created_msg = "step1：【xhs】浏览器实例已创建"
+        self.context_created_msg = "step2：【xhs】上下文已创建并加载cookie"
+        self.page_loaded_msg = "step3：【xhs】创作中心页面已加载完成"
+        self.locator_selected_msg = "step4：【xhs】基础定位器已选择"
+        self.video_uploaded_msg = "step5：【xhs】视频文件已上传"
+        self.upload_status_checked_msg = "step6：【xhs】视频上传状态检测完成"
+        self.title_tags_added_msg = "step7：【xhs】标题和标签已添加"
+        self.thumbnail_uploaded_msg = "step8：【xhs】缩略图已上传"
+        self.schedule_set_msg = "step9：【xhs】定时发布时间已设置"
+        self.video_published_msg = "step10：【xhs】视频已发布"
+        self.cookie_updated_msg = "step11：【xhs】cookie已更新"
+        self.browser_closed_msg = "step12：【xhs】浏览器实例已关闭"
         self.uploading_thumbnail_msg = "[+] Uploading thumbnail file"
         self.button_not_found_msg = "未找到任何按钮定位器"
         self.upload_button_click_msg = "  [-] 将点击上传视频按钮"
@@ -169,7 +169,7 @@ class xhsVideoUploader(object):
 
         # step3.创建新页面，导航到上传页面，明确指定等待domcontentloaded状态
         page = await context.new_page()
-        await page.goto(self.facebook_url, wait_until='domcontentloaded', timeout=self.timeout_60s)
+        await page.goto(self.xhs_url, wait_until='domcontentloaded', timeout=self.timeout_60s)
         logger.info(self.page_loaded_msg)
         
         # step4.选择基础定位器
@@ -244,6 +244,7 @@ class xhsVideoUploader(object):
         """
         try:
             # 使用find_button方法查找上传按钮，支持中文和英文界面
+            await asyncio.sleep(self.sleep_2s)
             upload_button = await self.find_button(self.upload_button_selectors)
             if not upload_button:
                 raise Exception("未找到上传视频按钮")
@@ -400,10 +401,10 @@ class xhsVideoUploader(object):
                     await publish_button.click()
 
                 # 步骤2: 等待视频处理完成（通过检查上传按钮重新出现）
-                logger.info(self.video_processing_msg)
+                logger.info(self.publish_waiting_msg)
                 # 尝试查找上传按钮
                 upload_button = await self.find_button(self.upload_button_selectors)
-                logger.info(f"{self.upload_attempt_msg} {attempt} {self.upload_button_status_msg}: {await upload_button.is_visible()}")
+                logger.info(f"{self.publish_attempt_msg} {attempt} {self.upload_button_status_msg}: {await upload_button.is_visible()}")
 
                 if upload_button:
                     await upload_button.wait_for(state='visible', timeout=self.timeout_30s)
@@ -431,7 +432,7 @@ async def platform_setup(self, handle=False):
         if not handle:
             return False
         logger.info(self.cookie_file_not_exist_msg)
-        await get_platform_cookie(account_file, self.local_executable_path, self.timeout_60s, self.facebook_url, self.login_wait_timeout, self.browser_lang)
+        await get_platform_cookie(account_file, self.local_executable_path, self.timeout_60s, self.xhs_url, self.login_wait_timeout, self.browser_lang)
     return True
 
 
@@ -468,7 +469,7 @@ async def cookie_auth(self):
             await browser.close()
 
 
-async def get_platform_cookie(account_file, executable_path, timeout, facebook_url, login_wait_timeout, browser_lang):
+async def get_platform_cookie(account_file, executable_path, timeout, xhs_url, login_wait_timeout, browser_lang):
     """
     获取平台登录cookie
     """
@@ -487,7 +488,7 @@ async def get_platform_cookie(account_file, executable_path, timeout, facebook_u
         context = await set_init_script(context)
         # Pause the page, and start recording manually.
         page = await context.new_page()
-        await page.goto(facebook_url, wait_until='domcontentloaded', timeout=timeout)
+        await page.goto(self.login_url, wait_until='domcontentloaded', timeout=timeout)
         await page.pause()
         # 等待用户登录完成
         logger.info(self.login_prompt_msg)
