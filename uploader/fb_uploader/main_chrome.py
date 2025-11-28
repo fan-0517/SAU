@@ -33,8 +33,8 @@ class FacebookVideo(object):
         主入口函数
         """
         # 验证平台cookie是否有效(可选：如果已登录，可跳过验证)
-        #if not await platform_setup(self, handle=True):
-        #    raise Exception("Cookie验证失败")
+        if not await platform_setup(self, handle=True):
+            raise Exception("Cookie验证失败")
 
         # 执行平台上传视频
         async with async_playwright() as playwright:
@@ -354,12 +354,15 @@ class FacebookVideo(object):
                 logger.info("  [-] 等待视频处理和发布完成...")
                 # 尝试查找上传按钮
                 upload_button = await self.find_button(upload_button_selectors)
+                logger.info(f"  [-] 第 {attempt} 次上传按钮状态: {await upload_button.is_visible()}")
+
                 if upload_button:
                     await upload_button.wait_for(state='visible', timeout=30000)
                     publish_success = True
                     break
             except Exception:
                 # 等待后重试
+                logger.warning(f"  [-] 第 {attempt} 次点击发布按钮失败，等待后重试")
                 await asyncio.sleep(min(attempt * 2, 10))
         
         # 最终状态检查
@@ -394,27 +397,22 @@ async def cookie_auth(self):
         context = await set_init_script(context)
         # 创建一个新的页面
         page = await context.new_page()
-        # 访问平台创作中心页面验证cookie，明确指定等待domcontentloaded状态
-        url = "https://www.facebook.com/"
-        await page.goto(url, wait_until='domcontentloaded', timeout=60000)
-        logger.info("平台创作中心页面DOM加载完成")
+        # 访问平台个人中心页面url验证cookie，明确指定等待domcontentloaded状态
+        personal_url = "https://www.facebook.com/profile.php"
+        await page.goto(personal_url, wait_until='domcontentloaded', timeout=60000)
+        logger.info("平台个人中心页面DOM加载完成")
         
         try:
-            # 初始化locator_base，确保在调用find_button前已设置
-            await self.choose_base_locator(page)
-            # 检查是否登录成功（通过查找上传按钮判断）
-            upload_button_selectors = [
-                'div[aria-label="照片/视频"]',
-                'div[aria-label="Photo/Video"]'
-            ]
-            upload_button = await self.find_button(upload_button_selectors)
-            if upload_button:
+            # 检查是否登录成功（如果成功跳转到个人中心页面的url）
+            current_url = page.url
+            logger.info(f"当前页面URL: {current_url}")
+            if personal_url in current_url:
                 logger.info("[+] cookie valid")
                 return True
-            
-            # 如果所有选择器都失败，记录页面内容以便调试
-            logger.error("[+] cookie expired - no login indicators found")
-            return False
+            else:
+                logger.error("[+] cookie expired - not redirect to personal center")
+                return False
+ 
         except Exception as e:
             logger.error(f"[+] cookie validation error: {str(e)}")
             return False
