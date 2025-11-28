@@ -127,11 +127,16 @@ class FacebookVideo(object):
         """
         for selector in selector_list:
             # 检查当前选择器是否在页面上存在匹配的元素
-            if await self.locator_base.locator(selector).count() > 0:
+            count = await self.locator_base.locator(selector).count()
+            if count > 0:
+                # 异步等待元素可交互（避免元素未加载完成）
+                await self.locator_base.locator(selector).wait_for(state="visible", timeout=30000)
+                # logger.info(f"找到按钮定位器: {selector}, 是否可见: {await self.locator_base.locator(selector).is_visible()}")
                 # 返回找到的按钮定位器
                 return self.locator_base.locator(selector)
 
         # 如果所有选择器都没找到，返回None
+        logger.info("未找到任何按钮定位器")
         return None
 
     async def upload_video_file(self, page):
@@ -384,7 +389,7 @@ async def cookie_auth(self):
     """
     async with async_playwright() as playwright:
         # 设置本地Chrome浏览器路径
-        browser = await playwright.chromium.launch(headless= LOCAL_CHROME_HEADLESS, executable_path=LOCAL_CHROME_PATH)
+        browser = await playwright.chromium.launch(headless=LOCAL_CHROME_HEADLESS, executable_path=LOCAL_CHROME_PATH)
         context = await browser.new_context(storage_state=self.account_file)
         context = await set_init_script(context)
         # 创建一个新的页面
@@ -395,6 +400,8 @@ async def cookie_auth(self):
         logger.info("平台创作中心页面DOM加载完成")
         
         try:
+            # 初始化locator_base，确保在调用find_button前已设置
+            await self.choose_base_locator(page)
             # 检查是否登录成功（通过查找上传按钮判断）
             upload_button_selectors = [
                 'div[aria-label="照片/视频"]',
@@ -425,6 +432,7 @@ async def get_platform_cookie(account_file):
                 '--lang en-US',
             ],
             'headless': False,  # 登录时需要可视化
+            'executable_path': LOCAL_CHROME_PATH,
         }
         # Make sure to run headed.
         browser = await playwright.chromium.launch(**options)
