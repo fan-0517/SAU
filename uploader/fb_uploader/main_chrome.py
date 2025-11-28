@@ -116,16 +116,38 @@ class FacebookVideo(object):
         # Facebook通常不需要iframe处理，直接使用page
         self.locator_base = page
 
+    async def find_button(self, selector_list):
+        """
+        通用的按钮查找方法
+        Args:
+            selector_list: 所有可能的按钮选择器列表
+        Returns:
+            找到的按钮定位器对象，如果没找到则返回None
+        """
+        for selector in selector_list:
+            # 检查当前选择器是否在页面上存在匹配的元素
+            if await self.locator_base.locator(selector).count() > 0:
+                # 返回找到的按钮定位器
+                return self.locator_base.locator(selector)
+
+        # 如果所有选择器都没找到，返回None
+        return None
+
     async def upload_video_file(self, page):
         """
         作用：上传视频文件
         网页中相关按钮：上传视频文件的按钮元素为（）
         """
         try:
-            # 点击上传按钮（照片/视频），使用指定的选择器
-            facebook_upload_selector = 'div[aria-label="照片/视频"]'
-            logger.info(f"  [-] 将点击上传视频按钮: {facebook_upload_selector}")
-            upload_button = self.locator_base.locator(facebook_upload_selector)
+            # 使用find_button方法查找上传按钮，支持中文和英文界面
+            upload_button_selectors = [
+                'div[aria-label="照片/视频"]',
+                'div[aria-label="Photo/Video"]'
+            ]
+            upload_button = await self.find_button(upload_button_selectors)
+            if not upload_button:
+                raise Exception("未找到上传视频按钮")
+            logger.info(f"  [-] 将点击上传视频按钮")
             await upload_button.wait_for(state='visible', timeout=30000)
             
             # 上传按钮，需要点击触发系统文件选择器
@@ -145,17 +167,17 @@ class FacebookVideo(object):
         """
         while True:
             try:
-                # 匹配中文发帖按钮和英文发布按钮，与click_publish方法保持一致
-                facebook_publish_button = self.locator_base.locator('//span[text()="发帖"]').or_(
-                    self.locator_base.locator('//span[text()="Post"]').or_(
-                        self.locator_base.locator('//span[text()="Schedule"]').or_(
-                            self.locator_base.locator('//span[text()="发布"]')
-                        )
-                    )
-                )
+                # 使用find_button方法查找发布按钮
+                publish_button_selectors = [
+                    '//span[text()="发帖"]',
+                    '//span[text()="Post"]',
+                    '//span[text()="Schedule"]',
+                    '//span[text()="发布"]'
+                ]
+                publish_button = await self.find_button(publish_button_selectors)
                 
                 # 检查发布按钮是否可点击
-                if await facebook_publish_button.get_attribute("disabled") is None:
+                if publish_button and await publish_button.get_attribute("disabled") is None:
                     logger.info("  [-]video uploaded.")
                     break
                 else:
@@ -163,11 +185,11 @@ class FacebookVideo(object):
                     await asyncio.sleep(2)
                     # 检查是否有错误需要重试，使用中文和英文选择器
                     facebook_upload_selector = ['div[aria-label="照片/视频"]']
-                    for selector in facebook_upload_selector:
-                        if await self.locator_base.locator(selector).count():
-                            logger.info("  [-] found some error while uploading now retry...")
-                            await self.handle_upload_error(page)
-                            break
+                    upload_button = await self.find_button(facebook_upload_selector)
+                    if upload_button:
+                        logger.info("  [-] found some error while uploading now retry...")
+                        await self.handle_upload_error(page)
+                        break
             except Exception as e:
                 logger.info(f"  [-] video uploading... Error: {str(e)}")
                 await asyncio.sleep(2)
@@ -177,13 +199,15 @@ class FacebookVideo(object):
         作用：处理上传错误，重新上传
         网页中相关按钮：系统文件管理器的上传按钮（input[type="file"]）
         """
-        instagram_logger.info("video upload error retrying.")
+        logger.info("video upload error retrying.")
         try:
-            # 重新选择文件
-            upload_button = self.locator_base.locator('input[type="file"]')
-            await upload_button.set_input_files(self.file_path)
+            # 使用find_button方法查找文件上传按钮
+            file_input_selectors = ['input[type="file"]']
+            file_input_button = await self.find_button(file_input_selectors)
+            if file_input_button:
+                await file_input_button.set_input_files(self.file_path)
         except Exception as e:
-            instagram_logger.error(f"重新上传失败: {str(e)}")
+            logger.error(f"重新上传失败: {str(e)}")
     
     async def add_title_tags(self, page):
         """
@@ -191,8 +215,8 @@ class FacebookVideo(object):
         网页中相关按钮：添加标题和标签的按钮选择器（）
         """
         try:
-            # 使用更通用的选择器定位标题输入框，支持中文和英文界面
-            facebook_editor_locators = [
+            # 使用find_button方法定位标题输入框，支持中文和英文界面
+            editor_locators = [
                 # 中文界面选择器
                 '[contenteditable="true"][role="textbox"][data-lexical-editor="true"]',
                 '[aria-placeholder*="分享你的新鲜事"][contenteditable="true"]',
@@ -201,15 +225,11 @@ class FacebookVideo(object):
                 '[aria-label="Write something..."]'
             ]
 
-            editor_locator = None
-            for selector in facebook_editor_locators:
-                if await self.locator_base.locator(selector).count() > 0:
-                    editor_locator = self.locator_base.locator(selector)
-                    logger.info(f"  [-] 将点击标题输入框: {await editor_locator.text_content()}")
-                    break
-            if not editor_locator:
+            editor_button = await self.find_button(editor_locators)
+            if not editor_button:
                 raise Exception("未找到标题输入框")
-            await editor_locator.click()
+            logger.info(f"  [-] 将点击标题输入框: {await editor_button.text_content()}")
+            await editor_button.click()
             
             # 清空现有内容
             await page.keyboard.press("Control+A")
@@ -239,8 +259,14 @@ class FacebookVideo(object):
         网页中相关按钮：上传缩略图的按钮选择器（）
         """
         try:
-            # 等待并点击缩略图上传按钮
-            thumbnail_button = self.locator_base.locator("//span[contains(text(), 'Add')] >> visible=true")
+            # 使用find_button方法查找缩略图上传按钮
+            thumbnail_button_selectors = [
+                "//span[contains(text(), 'Add')]",
+                "//span[contains(text(), '添加')]"
+            ]
+            thumbnail_button = await self.find_button(thumbnail_button_selectors)
+            if not thumbnail_button:
+                raise Exception("未找到缩略图上传按钮")
             logger.info(f"  [-] 将点击上传缩略图按钮: {await thumbnail_button.text_content()}")
             await thumbnail_button.click()
             
@@ -258,7 +284,14 @@ class FacebookVideo(object):
         """
         设置定时发布时间
         """
-        schedule_button = self.locator_base.locator("//span[text()='Schedule']")
+        # 使用find_button方法查找定时发布按钮
+        schedule_button_selectors = [
+            "//span[text()='Schedule']",
+            "//span[text()='定时']"
+        ]
+        schedule_button = await self.find_button(schedule_button_selectors)
+        if not schedule_button:
+            raise Exception("未找到定时发布按钮")
         logger.info(f"  [-] 将点击定时发布按钮: {await schedule_button.text_content()}")
         await schedule_button.wait_for(state='visible')
         await schedule_button.click()
@@ -281,20 +314,20 @@ class FacebookVideo(object):
         """
         while True:
             try:
-                # 匹配中文发帖按钮和英文发布按钮
-                publish_button = self.locator_base.locator('//span[text()="发帖"]').or_(
-                    self.locator_base.locator('//span[text()="Post"]').or_(
-                        self.locator_base.locator('//span[text()="Schedule"]').or_(
-                            self.locator_base.locator('//span[text()="发布"]')
-                        )
-                    )
-                )
+                # 使用find_button方法查找发布按钮
+                publish_button_selectors = [
+                    '//span[text()="发帖"]',
+                    '//span[text()="Post"]',
+                    '//span[text()="Schedule"]',
+                    '//span[text()="发布"]'
+                ]
+                publish_button = await self.find_button(publish_button_selectors)
                 
                 # 打印publish_button的文本
-                button_text = await publish_button.text_content() if await publish_button.count() > 0 else "Not found"
+                button_text = await publish_button.text_content() if publish_button else "Not found"
                 logger.info(f"  [-] 将点击发布按钮: {button_text}")
                 
-                if await publish_button.count():
+                if publish_button:
                     await publish_button.click()
 
                 await page.wait_for_url("https://www.facebook.com/",  timeout=60000)
@@ -327,10 +360,10 @@ async def cookie_auth(account_file):
                 'div[aria-label="Photo/Video"]'
             ]
             
-            for indicator in login_indicators:
-                if await page.locator(indicator).count() > 0:
-                    logger.info("[+] cookie valid")
-                    return True
+            login_indicator_button = await self.find_button(login_indicators)
+            if login_indicator_button:
+                logger.info("[+] cookie valid")
+                return True
             
             # 如果所有选择器都失败，记录页面内容以便调试
             logger.error("[+] cookie expired - no login indicators found")
