@@ -32,15 +32,15 @@ class FacebookVideo(object):
         """
         主入口函数
         """
-        # 验证cookie(可选：如果已登录，可跳过验证)
-        #if not await facebook_setup(self.account_file, handle=True):
-        #    raise Exception("Cookie验证失败")
+        # 验证平台cookie是否有效(可选：如果已登录，可跳过验证)
+        if not await platform_setup(self.account_file, handle=True):
+            raise Exception("Cookie验证失败")
 
-        # 执行上传
+        # 执行平台上传视频
         async with async_playwright() as playwright:
             await self.upload(playwright)
 
-        logger.info(f"✅ Facebook视频发布成功: {self.title}")
+        logger.info(f"✅ 【Facebook】视频发布成功: {self.title}")
         return True
 
     async def upload(self, playwright: Playwright) -> None:
@@ -64,8 +64,8 @@ class FacebookVideo(object):
 
         # step3.创建新页面，导航到上传页面，明确指定等待domcontentloaded状态
         page = await context.new_page()
-        facebook_url = "https://www.facebook.com/"
-        await page.goto(facebook_url, wait_until='domcontentloaded', timeout=60000)
+        url = "https://www.facebook.com/"
+        await page.goto(url, wait_until='domcontentloaded', timeout=60000)
         logger.info("step3：【Facebook】创作中心页面已加载完成")
         
         # step4.选择基础定位器
@@ -114,7 +114,7 @@ class FacebookVideo(object):
         """
         选择基础定位器
         """
-        # Facebook通常不需要iframe处理，直接使用page
+        # 通用平台不需要处理iframe，直接使用page即可
         self.locator_base = page
 
     async def find_button(self, selector_list):
@@ -367,28 +367,28 @@ class FacebookVideo(object):
 
 async def cookie_auth(account_file):
     """
-    验证cookie是否有效
+    验证平台的cookie是否有效
     """
     async with async_playwright() as playwright:
         # 设置本地Chrome浏览器路径
-        browser = await playwright.chromium.launch(headless= LOCAL_CHROME_HEADLESS, executable_path=self.local_executable_path)
+        browser = await playwright.chromium.launch(headless= LOCAL_CHROME_HEADLESS, executable_path=LOCAL_CHROME_PATH)
         context = await browser.new_context(storage_state=account_file)
         context = await set_init_script(context)
         # 创建一个新的页面
         page = await context.new_page()
-        # 访问Facebook上传页面验证cookie，明确指定等待domcontentloaded状态
-        await page.goto("https://www.facebook.com/", wait_until='domcontentloaded', timeout=60000)
-        logger.info("Facebook页面DOM加载完成")
+        # 访问平台创作中心页面验证cookie，明确指定等待domcontentloaded状态
+        url = "https://www.facebook.com/"
+        await page.goto(url, wait_until='domcontentloaded', timeout=60000)
+        logger.info("平台创作中心页面DOM加载完成")
         
         try:
-            # 检查是否登录成功
-            login_indicators = [
+            # 检查是否登录成功（通过查找上传按钮判断）
+            upload_button_selectors = [
                 'div[aria-label="照片/视频"]',
                 'div[aria-label="Photo/Video"]'
             ]
-            
-            login_indicator_button = await self.find_button(login_indicators)
-            if login_indicator_button:
+            upload_button = await self.find_button(upload_button_selectors)
+            if upload_button:
                 logger.info("[+] cookie valid")
                 return True
             
@@ -402,22 +402,22 @@ async def cookie_auth(account_file):
             await browser.close()
 
 
-async def facebook_setup(account_file, handle=False):
+async def platform_setup(account_file, handle=False):
     """
-    设置Facebook账户cookie
+    设置平台账户cookie
     """
     account_file = get_absolute_path(account_file, "fb_uploader")
     if not os.path.exists(account_file) or not await cookie_auth(account_file):
         if not handle:
             return False
         logger.info('[+] cookie file is not existed or expired. Now open the browser auto. Please login.')
-        await get_facebook_cookie(account_file)
+        await get_platform_cookie(account_file)
     return True
 
 
-async def get_facebook_cookie(account_file):
+async def get_platform_cookie(account_file):
     """
-    获取Facebook登录cookie
+    获取平台登录cookie
     """
     async with async_playwright() as playwright:
         options = {
@@ -433,7 +433,8 @@ async def get_facebook_cookie(account_file):
         context = await set_init_script(context)
         # Pause the page, and start recording manually.
         page = await context.new_page()
-        await page.goto("https://www.facebook.com/login")
+        url = "https://www.facebook.com/"
+        await page.goto(url, wait_until='domcontentloaded', timeout=60000)
         await page.pause()
         # 点击调试器的继续，保存cookie
         await context.storage_state(path=account_file)
@@ -466,42 +467,3 @@ async def setup_upload_browser(account_file, playwright):
         return browser, context
     else:
         raise FileNotFoundError(f"Cookie文件不存在: {account_file}")
-
-
-def get_video_info(file_path):
-    """
-    获取视频信息
-    """
-    import json
-    from utils.media_info import get_media_info
-    
-    media_info = get_media_info(file_path)
-    logger.info(f"[+]Video info: {json.dumps(media_info, ensure_ascii=False)}")
-    return media_info
-
-
-async def run_upload(title, file_path, tags, publish_date, account_file, **kwargs):
-    """
-    运行上传任务
-    
-    Args:
-        title (str): 视频标题
-        file_path (str): 视频文件路径
-        tags (str): 标签
-        publish_date (int): 发布时间戳
-        account_file (str): Cookie文件路径
-        **kwargs: 额外参数
-    """
-    uploader = FacebookVideo(title, file_path, tags, publish_date, account_file, **kwargs)
-    return await uploader.main()
-
-
-if __name__ == "__main__":
-    # 示例运行代码
-    asyncio.run(run_upload(
-        "测试视频",
-        "videos/demo.mp4",
-        "测试 标签",
-        0,  # 立即发布
-        "cookies/fb_cookie.json"
-    ))
