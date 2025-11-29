@@ -154,9 +154,9 @@ class TiktokVideo(object):
 
         #第一次运行需要打开这段注释，后面就不需要了，注释掉可以提高效率
         # change language to eng first （改语言方便用英文查找控件）
-        # await self.change_language(page)
+        await self.change_language(page)
         # 打印日志
-        # tiktok_logger.info(f"[+]Changing language to english.")
+        tiktok_logger.info(f"[+]Changing language to english.")
         await page.goto("https://www.tiktok.com/tiktokstudio/upload")
         tiktok_logger.info(f'[+]Uploading-------{self.title}.mp4')
 
