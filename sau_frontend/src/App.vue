@@ -33,10 +33,10 @@
               <el-icon><Upload /></el-icon>
               <span>发布中心</span>
             </el-menu-item>
-            <el-menu-item index="/website">
+            <!-- <el-menu-item index="/website">
               <el-icon><Monitor /></el-icon>
               <span>网站</span>
-            </el-menu-item>
+            </el-menu-item> -->
             <el-menu-item index="/data">
               <el-icon><DataAnalysis /></el-icon>
               <span>数据</span>

@@ -64,11 +64,15 @@
 
           <!-- 视频上传区域 -->
           <div class="upload-section">
-            <h3>视频</h3>
+            <h3>图文/视频</h3>
             <div class="upload-options">
-              <el-button type="primary" @click="showUploadOptions(tab)" class="upload-btn">
+              <el-button type="primary" @click="selectLocalUpload(tab)" class="upload-btn">
                 <el-icon><Upload /></el-icon>
-                上传视频
+                本地上传
+              </el-button>
+              <el-button type="success" @click="selectMaterialLibrary(tab)" class="upload-btn">
+                <el-icon><Folder /></el-icon>
+                素材库
               </el-button>
             </div>
             
@@ -85,24 +89,7 @@
             </div>
           </div>
 
-          <!-- 上传选项弹窗 -->
-          <el-dialog
-            v-model="uploadOptionsVisible"
-            title="选择上传方式"
-            width="400px"
-            class="upload-options-dialog"
-          >
-            <div class="upload-options-content">
-              <el-button type="primary" @click="selectLocalUpload" class="option-btn">
-                <el-icon><Upload /></el-icon>
-                本地上传
-              </el-button>
-              <el-button type="success" @click="selectMaterialLibrary" class="option-btn">
-                <el-icon><Folder /></el-icon>
-                素材库
-              </el-button>
-            </div>
-          </el-dialog>
+          <!-- 上传选项弹窗已移除，直接显示本地上传和素材库按钮 -->
 
           <!-- 本地上传弹窗 -->
           <el-dialog
@@ -347,6 +334,20 @@
               class="title-input"
             />
           </div>
+          
+          <!-- 正文输入 -->
+          <div class="content-section">
+            <h3>正文</h3>
+            <el-input
+              v-model="tab.content"
+              type="textarea"
+              :rows="6"
+              placeholder="请输入正文内容"
+              maxlength="500"
+              show-word-limit
+              class="content-input"
+            />
+          </div>
 
           <!-- 话题输入 -->
           <div class="topic-section">
@@ -538,7 +539,6 @@ let tabCounter = 1
 const appStore = useAppStore()
 
 // 上传相关状态
-const uploadOptionsVisible = ref(false)
 const localUploadVisible = ref(false)
 const materialLibraryVisible = ref(false)
 const currentUploadTab = ref(null)
@@ -569,6 +569,7 @@ const defaultTabInit = {
   selectedAccounts: [], // 选中的账号ID列表
   selectedPlatform: 1, // 选中的平台（单选）
   title: '',
+  content: '', // 正文内容
   productLink: '', // 商品链接
   productTitle: '', // 商品名称
   selectedTopics: [], // 话题列表（不带#号）
@@ -869,6 +870,7 @@ const confirmPublish = async (tab) => {
     const publishData = {
       type: tab.selectedPlatform,
       title: tab.title,
+      text: tab.content.trim() || '', // 正文内容，后端API使用text字段
       tags: tab.selectedTopics, // 不带#号的话题列表
       fileList: tab.fileList.map(file => file.path), // 只发送文件路径
       accountList: tab.selectedAccounts.map(accountId => {
@@ -897,6 +899,7 @@ const confirmPublish = async (tab) => {
         tab.fileList = []
         tab.displayFileList = []
         tab.title = ''
+        tab.content = ''
         tab.selectedTopics = []
         tab.selectedAccounts = []
         tab.scheduleEnabled = false
@@ -923,21 +926,15 @@ const confirmPublish = async (tab) => {
   })
 }
 
-// 显示上传选项
-const showUploadOptions = (tab) => {
-  currentUploadTab.value = tab
-  uploadOptionsVisible.value = true
-}
-
 // 选择本地上传
-const selectLocalUpload = () => {
-  uploadOptionsVisible.value = false
+const selectLocalUpload = (tab) => {
+  currentUploadTab.value = tab
   localUploadVisible.value = true
 }
 
 // 选择素材库
-const selectMaterialLibrary = async () => {
-  uploadOptionsVisible.value = false
+const selectMaterialLibrary = async (tab) => {
+  currentUploadTab.value = tab
   
   // 如果素材库为空，先获取素材数据
   if (materials.value.length === 0) {
@@ -1595,6 +1592,18 @@ const batchPublish = async () => {
           .draft-checkbox {
             display: block;
             margin: 10px 0;
+          }
+        }
+        
+        .topic-section {
+          margin: 20px 0;
+          
+          h3 {
+            margin-bottom: 8px; /* 缩小标题与按钮之间的间距 */
+          }
+          
+          .topic-display {
+            margin-top: 8px; /* 缩小标题与按钮之间的间距 */
           }
         }
       }
