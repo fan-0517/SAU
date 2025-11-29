@@ -520,7 +520,7 @@ def login():
     return response
 
 @app.route('/postVideo2', methods=['POST'])
-def postVideo():
+def postVideo2():
     """
     参数说明：
     type: 发布平台类型，1-小红书 2-视频号 3-抖音 4-快手

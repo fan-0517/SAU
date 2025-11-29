@@ -119,7 +119,7 @@ PLATFORM_CONFIGS = {
     "kuaishou": {
         "type": 4,
         "platform_name": "ks",
-        "personal_url": "https://cp.kuaishou.com/dashboard",
+        "personal_url": "https://cp.kuaishou.com/profile",
         "login_url": "https://passport.kuaishou.com/pc/account/login",
         "creator_video_url": "https://cp.kuaishou.com/article/publish/video?tabType=1",
         "creator_image_url": "https://cp.kuaishou.com/article/publish/video?tabType=2",
