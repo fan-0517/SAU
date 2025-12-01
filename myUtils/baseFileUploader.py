@@ -509,13 +509,16 @@ class BaseFileUploader(object):
                     # tiktok平台发布时要检查并处理版权检查弹窗
                     if self.platform_name == "tk":
                         # 等待版权检查弹窗出现
-                        await page.wait_for_selector('button.TUXButton.TUXButton--primary div.TUXButton-label:has-text("Post now")', timeout=5000)
-                        tiktok_logger.info("  [-]检测到版权检查弹窗，准备点击Post now按钮")                       
-                        # 使用更精确的选择器点击Post now按钮
-                        await self.locator_base.locator('button.TUXButton.TUXButton--primary div.TUXButton-label >> text=Post now').click()
-                        tiktok_logger.info("  [-]已点击Post now按钮")                    
-                        # 等待操作完成
-                        await page.wait_for_timeout(2000)
+                        try:
+                            await page.wait_for_selector('button.TUXButton.TUXButton--primary div.TUXButton-label:has-text("Post now")', timeout=5000)
+                            self.logger.info("  [-]检测到版权检查弹窗，准备点击Post now按钮")                       
+                            # 使用更精确的选择器点击Post now按钮
+                            await self.locator_base.locator('button.TUXButton.TUXButton--primary div.TUXButton-label >> text=Post now').click()
+                            self.logger.info("  [-]已点击Post now按钮")                     
+                            # 等待操作完成
+                            await page.wait_for_timeout(2000)
+                        except Exception as e:
+                            self.logger.warning(f"  [-]未检测到版权检查弹窗或点击失败: {str(e)}")
 
 
                 # 步骤2: 等待视频处理完成（通过检查上传按钮重新出现）
@@ -532,11 +535,13 @@ class BaseFileUploader(object):
                     break
                 #xx平台等待发布完成：尝试查找上传按钮，如果上传按钮可见，也能说明发布成功
                 upload_button = await self.find_button(self.upload_button_selectors)
-                self.logger.info(f"发布尝试 {attempt}，上传按钮可见状态: {await upload_button.is_visible()}")
                 if upload_button:
+                    self.logger.info(f"发布尝试 {attempt}，上传按钮可见状态: {await upload_button.is_visible()}")
                     await upload_button.wait_for(state='visible', timeout=self.button_visible_timeout)
                     self.publish_status = True
                     break
+                else:
+                    self.logger.info(f"发布尝试 {attempt}，未找到上传按钮")
             except Exception:
                 # 等待后重试
                 self.logger.warning(f"发布尝试 {attempt} 失败，等待重试...")
