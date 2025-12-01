@@ -218,14 +218,14 @@ PLATFORM_CONFIGS = {
     "instagram": {
         "type": 6,
         "platform_name": "ig",
-        "personal_url": "https://www.instagram.com/",
+        "personal_url": "https://www.instagram.com/me/",
         "login_url": "https://www.instagram.com/accounts/login/",
-        "creator_video_url": "https://www.instagram.com/upload/video/",
-        "creator_image_url": "https://www.instagram.com/upload/image/",
+        "creator_video_url": "https://business.facebook.com/latest/composer",
+        "creator_image_url": "https://business.facebook.com/latest/composer",
         "selectors": {
-            "upload_button": ['input[type="file"]'],
-            "publish_button": ['button:has-text("提交")'],
-            "title_editor": ['#video_upload > div > div:nth-child(2) > div > div.title > div.input-box > input'],
+            "upload_button": ['div[role="button"]:has-text("Add photo/video")'],
+            "publish_button": ['*[role="button"]:has(:text("Publish"))'],
+            "title_editor": ['div[role="combobox"][contenteditable="true"][aria-label*="Write into the dialogue box"]'],
             #正文编辑器输入框选择器
             "textbox_selectors": [
                 'div.tiptap.ProseMirror[contenteditable="true"][role="textbox"]'
