@@ -176,23 +176,18 @@ PLATFORM_CONFIGS = {
         "type": 5,
         "platform_name": "tk",
         "personal_url": "https://www.tiktok.com/",
-        "login_url": "https://www.tiktok.com/login",
-        "creator_video_url": "https://www.tiktok.com/upload/video",
-        "creator_image_url": "https://www.tiktok.com/upload/image",
+        "login_url": "https://www.tiktok.com/login?lang=en",
+        "creator_video_url": "https://www.tiktok.com/tiktokstudio/upload?lang=en",
+        "creator_image_url": "https://www.tiktok.com/tiktokstudio/upload?lang=en",
         "selectors": {
-            "upload_button": ['input.upload-input[type="file"]'],
-            "publish_button": ['div.d-button-content span.d-text:has-text("发布")'],
-            "title_editor": [
-                '[contenteditable="true"][role="textbox"][data-lexical-editor="true"]',
-                '[aria-placeholder*="分享你的新鲜事"][contenteditable="true"]',
-                '[aria-label="Add a description"]',
-                '[aria-label="Write something..."]'
-            ],
-            #正文编辑器输入框选择器
+            "upload_button": ['button:has-text("Select video"):visible'],
+            "publish_button": ['button[data-e2e="post_video_button"]', 'button:has-text("Post")', 'role=button[name="Post"]'],
+            "title_editor": ['div.public-DraftEditor-content'],
             "textbox_selectors": [
-                'div.tiptap.ProseMirror[contenteditable="true"][role="textbox"]'
+                'div.public-DraftEditor-content[contenteditable="true"]',
+                'div.caption-editor'
             ],
-            "thumbnail_button": ["//span[contains(text(), 'Add')]", "//span[contains(text(), '添加')]"],
+            "thumbnail_button": [".cover-container"],
             "schedule_button": ["//span[text()='Schedule']", "//span[text()='定时']"],
             "date_input": '[aria-label="Date"]',
             "time_input": '[aria-label="Time"]',
@@ -202,7 +197,7 @@ PLATFORM_CONFIGS = {
             #是否跳过Cookie验证
             "skip_cookie_verify": True,
             #是否支持标题
-            "title": True,
+            "title": False,
             #是否支持正文
             "textbox": True,
             #是否支持标签

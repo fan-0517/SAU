@@ -194,11 +194,15 @@ class BaseFileUploader(object):
 
             # step3.创建新页面，导航到上传页面，明确指定等待domcontentloaded状态
             page = await context.new_page()
+            #tiktok平台需要先切换到英文
+            if self.platform_name == "tk":
+                await self.change_language(page)
             # 根据文件类型选择上传页面
             if self.file_type == 1:
                 await page.goto(self.creator_image_url, wait_until='domcontentloaded', timeout=self.page_load_timeout)
             else:
                 await page.goto(self.creator_video_url, wait_until='domcontentloaded', timeout=self.page_load_timeout)
+            await asyncio.sleep(2)
             self.logger.info(f"step3: {self.platform_name}页面加载完成")
             
             # step4.选择基础定位器
@@ -297,6 +301,7 @@ class BaseFileUploader(object):
         """
         作用：上传视频文件
         网页中相关按钮：上传视频文件的按钮元素为（）
+        返回：是否上传成功
         """
         try:
             # 使用find_button方法查找上传按钮，支持中文和英文界面
@@ -322,6 +327,7 @@ class BaseFileUploader(object):
         """
         作用：检测上传状态
         网页中相关按钮：发布按钮选择器（）
+        返回：是否上传成功
         """
         while True:
             try:
@@ -359,6 +365,7 @@ class BaseFileUploader(object):
         """
         作用：处理上传错误，重新上传
         网页中相关按钮：系统文件管理器的上传按钮（input[type="file"]）
+        返回：是否重新上传成功
         """
         try:
             self.logger.info("video upload error retrying.")
@@ -376,6 +383,7 @@ class BaseFileUploader(object):
         """
         作用：添加标题和标签
         网页中相关按钮：添加标题和标签的按钮选择器（）
+        返回：是否添加成功
         """
         try:
             # 输入标题
@@ -428,6 +436,9 @@ class BaseFileUploader(object):
             return False
 
     async def set_thumbnail(self, page):
+        """
+        设置视频封面
+        """
         if self.thumbnail_path:
             self.logger.info(f"  [-] 将点击封面选择按钮: {await self.find_button(self.thumbnail_button_selectors).text_content()}")
             await self.find_button(self.thumbnail_button_selectors).click()
@@ -440,6 +451,9 @@ class BaseFileUploader(object):
             await self.find_button(self.thumbnail_close_selectors).click()
 
     async def set_location(self, page):
+        """
+        设置视频发布位置
+        """
         if not self.location:
             return
         await page.locator('div.semi-select span:has-text("输入地理位置")').click()
@@ -482,10 +496,8 @@ class BaseFileUploader(object):
         """
         max_attempts = self.max_publish_attempts  # 最大尝试次数
         attempt = 0
-        publish_success = False
         
         # 上传按钮选择器列表
-        
         while attempt < max_attempts and not self.publish_status:
             attempt += 1
             try:
@@ -494,22 +506,31 @@ class BaseFileUploader(object):
                 if publish_button:
                     await publish_button.click()
                     await asyncio.sleep(self.check_interval)
+                    # tiktok平台发布时要检查并处理版权检查弹窗
+                    if self.platform_name == "tk":
+                        # 等待版权检查弹窗出现
+                        await page.wait_for_selector('button.TUXButton.TUXButton--primary div.TUXButton-label:has-text("Post now")', timeout=5000)
+                        tiktok_logger.info("  [-]检测到版权检查弹窗，准备点击Post now按钮")                       
+                        # 使用更精确的选择器点击Post now按钮
+                        await self.locator_base.locator('button.TUXButton.TUXButton--primary div.TUXButton-label >> text=Post now').click()
+                        tiktok_logger.info("  [-]已点击Post now按钮")                    
+                        # 等待操作完成
+                        await page.wait_for_timeout(2000)
+
 
                 # 步骤2: 等待视频处理完成（通过检查上传按钮重新出现）
                 self.logger.info("等待发布完成...")
                 current_url = page.url
                 self.logger.info(f"当前url: {current_url}")
-                #ks平台、等待发布完成
+                #ks平台、等待发布完成：如果当前url已不在发布页面，说明发布成功
                 if self.file_type == 1:
                     target_url = self.creator_image_url
                 else:
                     target_url = self.creator_video_url
-                # 如果当前url已不在发布页面，说明发布成功
                 if target_url not in current_url:
                     self.publish_status = True
                     break
-                #xx平台等待发布完成
-                # 尝试查找上传按钮，如果上传按钮可见，也能说明发布成功
+                #xx平台等待发布完成：尝试查找上传按钮，如果上传按钮可见，也能说明发布成功
                 upload_button = await self.find_button(self.upload_button_selectors)
                 self.logger.info(f"发布尝试 {attempt}，上传按钮可见状态: {await upload_button.is_visible()}")
                 if upload_button:
@@ -636,6 +657,19 @@ class BaseFileUploader(object):
             return browser, context
         else:
             raise FileNotFoundError(f"Cookie文件不存在: {account_file}")
+
+    async def change_language(self, page):
+        # set the language to english
+        await page.goto("https://www.tiktok.com", timeout=60000)  # 设置60秒超时
+        await page.wait_for_load_state('domcontentloaded', timeout=60000)
+        await asyncio.sleep(2)
+        await page.wait_for_selector('[data-e2e="nav-more-menu"]', timeout=60000)
+        # 已经设置为英文, 省略这个步骤
+        if await page.locator('[data-e2e="nav-more-menu"]').text_content() == "More":
+            return
+        await page.locator('[data-e2e="nav-more-menu"]').click()
+        await page.locator('[data-e2e="language-select"]').click()
+        await page.locator('#creator-tools-selection-menu-header >> text=English (US)').click()
 
 
 
