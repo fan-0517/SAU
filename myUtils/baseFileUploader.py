@@ -303,8 +303,8 @@ class BaseFileUploader(object):
             await asyncio.sleep(self.check_interval)
             upload_button = await self.find_button(self.upload_button_selectors)
             if not upload_button:
-                raise Exception("未找到上传视频按钮")
-            self.logger.info("  [-] 将点击上传视频按钮")
+                raise Exception("未找到上传图文/视频按钮")
+            self.logger.info("  [-] 将点击上传图文/视频按钮")
             await upload_button.wait_for(state='visible', timeout=self.button_visible_timeout)
             
             # 上传按钮，需要点击触发系统文件选择器
@@ -315,7 +315,7 @@ class BaseFileUploader(object):
             self.logger.info(f"通过系统文件选择器上传文件: {self.file_path}")
             return True
         except Exception as e:
-            self.logger.error(f"选择视频文件失败: {str(e)}")
+            self.logger.error(f"选择图文/视频文件失败: {str(e)}")
             return False
 
     async def detect_upload_status(self, page):
@@ -329,20 +329,20 @@ class BaseFileUploader(object):
                 if self.platform_name == "ks":
                     number = await page.locator("text=上传中").count()
                     if number == 0:
-                        self.logger.success("视频上传完毕")
+                        self.logger.success("图文/视频上传完毕")
                         break
                     else:
-                        self.logger.info("正在上传视频中...")
+                        self.logger.info("正在上传图文/视频中...")
                         await asyncio.sleep(self.check_interval)
                 else:
                     # 其他平台，使用find_button方法查找发布按钮，发布按钮能点了就代表上传完毕了
                     publish_button = await self.find_button(self.publish_button_selectors)               
                     # 检查发布按钮是否可点击
                     if publish_button and await publish_button.get_attribute("disabled") is None:
-                        self.logger.info("视频上传完毕")
+                        self.logger.info("图文/视频上传完毕")
                         break
                     else:
-                        self.logger.info("正在上传视频中...")
+                        self.logger.info("正在上传图文/视频中...")
                         await asyncio.sleep(self.check_interval)
                         # 检查是否有错误需要重试，使用中文和英文选择器
                         error_element = await self.find_button(self.error_selectors)

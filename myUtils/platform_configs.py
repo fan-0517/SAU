@@ -137,7 +137,7 @@ PLATFORM_CONFIGS = {
         "creator_video_url": "https://cp.kuaishou.com/article/publish/video?tabType=1",
         "creator_image_url": "https://cp.kuaishou.com/article/publish/video?tabType=2",
         "selectors": {
-            "upload_button": ["button[class^='_upload-btn']",'button:has-text("上传图片")', 'button:has-text("上传视频")', 'button._upload-btn_ysbff_57'],
+            "upload_button": ['button:has-text("上传图片")', 'button:has-text("上传视频")'],
             "publish_button": ['div._button_3a3lq_1._button-primary_3a3lq_60:has-text("发布")', 'div:has-text("发布")', 'text="发布"'],
             #标题编辑器选择器
             "title_editor": ['div:has-text("描述") + div'],
