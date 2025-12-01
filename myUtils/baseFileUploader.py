@@ -164,91 +164,105 @@ class BaseFileUploader(object):
 
         # 3.执行平台上传视频
         async with async_playwright() as playwright:
-            await self.upload(playwright)
-
-        self.logger.info(f"{self.platform_name}视频上传成功: {self.title}")
-        return self.publish_status
+            upload_result = await self.upload(playwright)
+            if not upload_result:
+                self.logger.error(f"{self.platform_name}视频上传失败: {self.title}")
+                return False
+            else:
+                self.logger.info(f"{self.platform_name}视频上传成功: {self.title}")
+                return True
 
     async def upload(self, playwright: Playwright) -> None:
         """
         作用：执行视频上传
         """
-        self.logger.info(f'开始上传视频: {self.title}')
-        # step1.创建浏览器实例
-        browser = await playwright.chromium.launch(
-            headless=self.headless, 
-            executable_path=self.local_executable_path
-        )
-        self.logger.info(f"step1: {self.platform_name}浏览器实例创建成功")
+        try:
+            self.logger.info(f'开始上传视频: {self.title}')
+            # step1.创建浏览器实例
+            browser = await playwright.chromium.launch(
+                headless=self.headless, 
+                executable_path=self.local_executable_path
+            )
+            self.logger.info(f"step1: {self.platform_name}浏览器实例创建成功")
 
 
-        # step2.创建上下文并加载cookie
-        context = await browser.new_context(storage_state=f"{self.account_file}")
-        context = await set_init_script(context)
-        self.logger.info(f"step2: {self.platform_name}浏览器上下文创建成功")
+            # step2.创建上下文并加载cookie
+            context = await browser.new_context(storage_state=f"{self.account_file}")
+            context = await set_init_script(context)
+            self.logger.info(f"step2: {self.platform_name}浏览器上下文创建成功")
 
 
-        # step3.创建新页面，导航到上传页面，明确指定等待domcontentloaded状态
-        page = await context.new_page()
-        # 根据文件类型选择上传页面
-        if self.file_type == 1:
-            await page.goto(self.creator_image_url, wait_until='domcontentloaded', timeout=self.page_load_timeout)
-        else:
-            await page.goto(self.creator_video_url, wait_until='domcontentloaded', timeout=self.page_load_timeout)
-        self.logger.info(f"step3: {self.platform_name}页面加载完成")
-        
-        # step4.选择基础定位器
-        await self.choose_base_locator(page)
-        self.logger.info(f"step4: {self.platform_name}基础定位器选择完成")
+            # step3.创建新页面，导航到上传页面，明确指定等待domcontentloaded状态
+            page = await context.new_page()
+            # 根据文件类型选择上传页面
+            if self.file_type == 1:
+                await page.goto(self.creator_image_url, wait_until='domcontentloaded', timeout=self.page_load_timeout)
+            else:
+                await page.goto(self.creator_video_url, wait_until='domcontentloaded', timeout=self.page_load_timeout)
+            self.logger.info(f"step3: {self.platform_name}页面加载完成")
+            
+            # step4.选择基础定位器
+            await self.choose_base_locator(page)
+            self.logger.info(f"step4: {self.platform_name}基础定位器选择完成")
 
-        # step5.上传视频文件
-        await self.upload_video_file(page)
-        self.logger.info(f"step5: {self.platform_name}视频文件上传完成")
+            # step5.上传视频文件
+            upload_video_file_result = await self.upload_video_file(page)
+            if not upload_video_file_result:
+                raise Exception(f"{self.platform_name} 视频文件上传失败")
+            self.logger.info(f"step5: {self.platform_name}视频文件上传完成")
 
-        # step6.检测上传状态
-        await self.detect_upload_status(page)
-        self.logger.info(f"step6: {self.platform_name}上传状态检测完成")
-        
-        # step7.添加标题和标签
-        await self.add_title_tags(page)
-        self.logger.info(f"step7: {self.platform_name}标题和标签添加完成")
+            # step6.检测上传状态
+            detect_upload_status_result = await self.detect_upload_status(page)
+            if not detect_upload_status_result:
+                raise Exception(f"{self.platform_name} 上传状态检测失败")
+            self.logger.info(f"step6: {self.platform_name}上传状态检测完成")
+            
+            # step7.添加标题和标签
+            add_title_tags_result = await self.add_title_tags(page)
+            if not add_title_tags_result:
+                raise Exception(f"{self.platform_name} 标题和标签添加失败")
+            self.logger.info(f"step7: {self.platform_name}标题和标签添加完成")
 
-        # step8.上传视频封面
-        if self.thumbnail_supported and self.thumbnail:
-            await self.set_thumbnail(page)
-            self.logger.info(f"step8: {self.platform_name}视频封面上传完成")
-        else:
-            self.logger.info(f"step8: {self.platform_name}跳过设置缩略图")
+            # step8.上传视频封面
+            if self.thumbnail_supported and self.thumbnail:
+                await self.set_thumbnail(page)
+                self.logger.info(f"step8: {self.platform_name}视频封面上传完成")
+            else:
+                self.logger.info(f"step8: {self.platform_name}跳过设置缩略图")
 
-        # step9.添加地点
-        if self.location_supported and self.location:
-            await self.set_location(page)
-            self.logger.info(f"step9: {self.platform_name}地点添加完成")
-        else:
-            self.logger.info(f"step9: {self.platform_name}跳过添加地点")
-        
+            # step9.添加地点
+            if self.location_supported and self.location:
+                await self.set_location(page)
+                self.logger.info(f"step9: {self.platform_name}地点添加完成")
+            else:
+                self.logger.info(f"step9: {self.platform_name}跳过添加地点")
+            
+            # step10.设置定时发布（如果需要）
+            if self.schedule_supported and self.publish_date != 0:
+                await self.set_schedule_time(page, self.publish_date)
+                self.logger.info(f"step10: {self.platform_name}定时发布设置完成")
+            else:
+                self.logger.info(f"step10: {self.platform_name}跳过定时发布")
+            
+            # step11.点击发布
+            await self.click_publish(page)
+            self.logger.info(f"step11：{self.platform_name}视频已点击发布按钮")   
 
-        # step10.设置定时发布（如果需要）
-        if self.schedule_supported and self.publish_date != 0:
-            await self.set_schedule_time(page, self.publish_date)
-            self.logger.info(f"step10: {self.platform_name}定时发布设置完成")
-        else:
-            self.logger.info(f"step10: {self.platform_name}跳过定时发布")
-        
-        # step11.点击发布
-        await self.click_publish(page)
-        self.logger.info(f"step11：{self.platform_name}视频已点击发布按钮")   
+            # step12.重新保存最新cookie
+            await context.storage_state(path=f"{self.account_file}")  
+            self.logger.info(f"step12：{self.platform_name}cookie已更新")
 
-        # step12.重新保存最新cookie
-        await context.storage_state(path=f"{self.account_file}")  
-        self.logger.info(f"step12：{self.platform_name}cookie已更新")
+            await asyncio.sleep(self.check_interval)  # close delay for look the video status
+            
+            # step13.关闭所有页面和浏览器上下文
+            await context.close()
+            await browser.close()
+            self.logger.info(f"step13：{self.platform_name}浏览器窗口已关闭")
 
-        await asyncio.sleep(self.check_interval)  # close delay for look the video status
-        
-        # step13.关闭所有页面和浏览器上下文
-        await context.close()
-        await browser.close()
-        self.logger.info(f"step13：{self.platform_name}浏览器窗口已关闭")
+            return self.publish_status
+        except Exception as e:
+            self.logger.error(f"{self.platform_name}视频上传失败: {str(e)}")
+            return False
 
     async def choose_base_locator(self, page):
         """
@@ -299,9 +313,10 @@ class BaseFileUploader(object):
             file_chooser = await fc_info.value
             await file_chooser.set_files(self.file_path)
             self.logger.info(f"通过系统文件选择器上传文件: {self.file_path}")
+            return True
         except Exception as e:
             self.logger.error(f"选择视频文件失败: {str(e)}")
-            raise
+            return False
 
     async def detect_upload_status(self, page):
         """
@@ -337,20 +352,25 @@ class BaseFileUploader(object):
             except Exception as e:
                 self.logger.info(f"  [-] video uploading... Error: {str(e)}")
                 await asyncio.sleep(self.check_interval)
+                return False
+        return True
 
     async def handle_upload_error(self, page):
         """
         作用：处理上传错误，重新上传
         网页中相关按钮：系统文件管理器的上传按钮（input[type="file"]）
         """
-        self.logger.info("video upload error retrying.")
         try:
+            self.logger.info("video upload error retrying.")
             # 使用find_button方法查找文件上传按钮
             file_input_button = await self.find_button(self.file_input_selector)
             if file_input_button:
                 await file_input_button.set_input_files(self.file_path)
+                self.logger.info(f"重新上传文件: {self.file_path}")
+                return True
         except Exception as e:
             self.logger.error(f"重新上传失败: {str(e)}")
+            return False
     
     async def add_title_tags(self, page):
         """
@@ -402,8 +422,10 @@ class BaseFileUploader(object):
                     await page.keyboard.insert_text(f"#{tag} ")
                     # 等待300毫秒
                     await page.wait_for_timeout(self.wait_timeout_500ms)
+            return True
         except Exception as e:
             self.logger.error(f"Failed to add title, text and tags: {str(e)}")
+            return False
 
     async def set_thumbnail(self, page):
         if self.thumbnail_path:
@@ -624,7 +646,11 @@ async def run_upload(platform, account_file, file_type, file_path, title, text, 
     运行上传任务
     """
     uploader = BaseFileUploader(platform, account_file, file_type, file_path, title, text, tags, thumbnail_path, location, publish_date)
-    return await uploader.main()
+    try:
+        return await uploader.main()
+    except Exception as e:
+        uploader.logger.error(f"上传任务失败: {str(e)}")
+        return False
 
 
 # 特定平台上传器类（用于向后兼容和特殊处理）
