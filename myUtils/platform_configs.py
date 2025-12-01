@@ -50,6 +50,8 @@ PLATFORM_CONFIGS = {
             "tags": True,
             #是否支持封面
             "thumbnail": False,
+            #是否支持地点
+            "location": False,
             #是否支持定时发布
             "schedule": False
         }
@@ -86,6 +88,8 @@ PLATFORM_CONFIGS = {
             "tags": True,
             #是否支持封面
             "thumbnail": False,
+            #是否支持地点
+            "location": False,
             #是否支持定时发布
             "schedule": False
         }
@@ -122,6 +126,8 @@ PLATFORM_CONFIGS = {
             "tags": True,
             #是否支持封面
             "thumbnail": False,
+            #是否支持地点
+            "location": False,
             #是否支持定时发布
             "schedule": False
         }
@@ -163,6 +169,8 @@ PLATFORM_CONFIGS = {
             "tags": True,
             #是否支持封面
             "thumbnail": False,
+            #是否支持地点
+            "location": False,
             #是否支持定时发布
             "schedule": False
         }
@@ -204,6 +212,8 @@ PLATFORM_CONFIGS = {
             "tags": True,
             #是否支持封面
             "thumbnail": False,
+            #是否支持地点
+            "location": False,
             #是否支持定时发布
             "schedule": False
         }
@@ -240,6 +250,8 @@ PLATFORM_CONFIGS = {
             "tags": True,
             #是否支持封面
             "thumbnail": False,
+            #是否支持地点
+            "location": False,
             #是否支持定时发布
             "schedule": False
         }
@@ -278,6 +290,8 @@ PLATFORM_CONFIGS = {
             "tags": True,
             #是否支持封面
             "thumbnail": False,
+            #是否支持地点
+            "location": False,
             #是否支持定时发布
             "schedule": False
         }
@@ -315,6 +329,8 @@ PLATFORM_CONFIGS = {
             "tags": True,
             #是否支持封面
             "thumbnail": False,
+            #是否支持地点
+            "location": False,
             #是否支持定时发布
             "schedule": False
         }
@@ -353,6 +369,8 @@ PLATFORM_CONFIGS = {
             "tags": True,
             #是否支持封面
             "thumbnail": False,
+            #是否支持地点
+            "location": False,
             #是否支持定时发布
             "schedule": False
         }

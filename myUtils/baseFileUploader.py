@@ -26,7 +26,7 @@ class BaseFileUploader(object):
     publish_date: 发布时间，格式为YYYY-MM-DD HH:MM:SS
     """
     
-    def __init__(self, platform, account_file, file_type, file_path, title, text, tags, thumbnail_path, publish_date):
+    def __init__(self, platform, account_file, file_type, file_path, title, text, tags, thumbnail_path, location, publish_date):
         self.platform = platform
         self.account_file = account_file
         self.file_type = file_type
@@ -35,6 +35,7 @@ class BaseFileUploader(object):
         self.text = text
         self.tags = tags
         self.thumbnail_path = thumbnail_path
+        self.location = location
         self.publish_date = publish_date
         self.local_executable_path = LOCAL_CHROME_PATH
         self.headless = LOCAL_CHROME_HEADLESS
@@ -89,6 +90,8 @@ class BaseFileUploader(object):
         self.tags_supported = self.config["features"]["tags"]
         # 是否支持封面
         self.thumbnail_supported = self.config["features"]["thumbnail"]
+        # 是否支持地点
+        self.location_supported = self.config["features"]["location"]
         # 是否支持定时发布
         self.schedule_supported = self.config["features"]["schedule"]
         # 视频/图文发布状态
@@ -217,27 +220,35 @@ class BaseFileUploader(object):
         else:
             self.logger.info(f"step8: {self.platform_name}跳过设置缩略图")
 
-        # step9.设置定时发布（如果需要）
+        # step9.添加地点
+        if self.location_supported and self.location:
+            await self.set_location(page)
+            self.logger.info(f"step9: {self.platform_name}地点添加完成")
+        else:
+            self.logger.info(f"step9: {self.platform_name}跳过添加地点")
+        
+
+        # step10.设置定时发布（如果需要）
         if self.schedule_supported and self.publish_date != 0:
             await self.set_schedule_time(page, self.publish_date)
-            self.logger.info(f"step9: {self.platform_name}定时发布设置完成")
+            self.logger.info(f"step10: {self.platform_name}定时发布设置完成")
         else:
-            self.logger.info(f"step9: {self.platform_name}跳过定时发布")
+            self.logger.info(f"step10: {self.platform_name}跳过定时发布")
         
-        # step10.点击发布
+        # step11.点击发布
         await self.click_publish(page)
-        self.logger.info(f"step10：{self.platform_name}视频已点击发布按钮")   
+        self.logger.info(f"step11：{self.platform_name}视频已点击发布按钮")   
 
-        # step11.重新保存最新cookie
+        # step12.重新保存最新cookie
         await context.storage_state(path=f"{self.account_file}")  
-        self.logger.info(f"step11：{self.platform_name}cookie已更新")
+        self.logger.info(f"step12：{self.platform_name}cookie已更新")
 
         await asyncio.sleep(self.check_interval)  # close delay for look the video status
         
-        # step12.关闭所有页面和浏览器上下文
+        # step13.关闭所有页面和浏览器上下文
         await context.close()
         await browser.close()
-        self.logger.info(f"step12：{self.platform_name}浏览器窗口已关闭")
+        self.logger.info(f"step13：{self.platform_name}浏览器窗口已关闭")
 
     async def choose_base_locator(self, page):
         """
@@ -397,6 +408,16 @@ class BaseFileUploader(object):
             self.logger.info(f"  [-] 将点击封面关闭按钮: {await self.find_button(self.thumbnail_close_selectors).text_content()}")
             await self.find_button(self.thumbnail_close_selectors).click()
 
+    async def set_location(self, page):
+        if not self.location:
+            return
+        await page.locator('div.semi-select span:has-text("输入地理位置")').click()
+        await page.keyboard.press("Backspace")
+        await page.wait_for_timeout(2000)
+        await page.keyboard.type(location)
+        await page.wait_for_selector('div[role="listbox"] [role="option"]', timeout=5000)
+        await page.locator('div[role="listbox"] [role="option"]').first.click()
+    
     async def set_schedule_time(self, page, publish_date):
         """
         设置定时发布时间
@@ -576,11 +597,11 @@ class BaseFileUploader(object):
 
 
 # 工厂函数和便捷函数
-async def run_upload(platform, account_file, file_type, file_path, title, text, tags, thumbnail_path, publish_date, **kwargs):
+async def run_upload(platform, account_file, file_type, file_path, title, text, tags, thumbnail_path, location, publish_date, **kwargs):
     """
     运行上传任务
     """
-    uploader = BaseFileUploader(platform, account_file, file_type, file_path, title, text, tags, thumbnail_path, publish_date)
+    uploader = BaseFileUploader(platform, account_file, file_type, file_path, title, text, tags, thumbnail_path, location, publish_date)
     return await uploader.main()
 
 
@@ -588,8 +609,8 @@ async def run_upload(platform, account_file, file_type, file_path, title, text, 
 # 小红书文件上传器
 class XiaohongshuFile(BaseFileUploader):
     """小红书文件上传器"""
-    def __init__(self, account_file, file_type, file_path, title, text, tags, thumbnail_path, publish_date):
-        super().__init__("xiaohongshu", account_file, file_type, file_path, title, text, tags, thumbnail_path, publish_date)
+    def __init__(self, account_file, file_type, file_path, title, text, tags, thumbnail_path, location, publish_date):
+        super().__init__("xiaohongshu", account_file, file_type, file_path, title, text, tags, thumbnail_path, location, publish_date)
 
 
 if __name__ == "__main__":
@@ -603,5 +624,6 @@ if __name__ == "__main__":
         "测试视频正文",
         "测试 标签",
         "thumbnails/demo.jpg",
+        "测试地点",
         0  # 立即发布
     ))
