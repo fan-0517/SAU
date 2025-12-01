@@ -26,7 +26,7 @@ class BaseFileUploader(object):
     publish_date: 发布时间，格式为YYYY-MM-DD HH:MM:SS
     """
     
-    def __init__(self, platform, account_file, file_type, file_path, title, text, tags, publish_date):
+    def __init__(self, platform, account_file, file_type, file_path, title, text, tags, thumbnail_path, publish_date):
         self.platform = platform
         self.account_file = account_file
         self.file_type = file_type
@@ -34,6 +34,7 @@ class BaseFileUploader(object):
         self.title = title
         self.text = text
         self.tags = tags
+        self.thumbnail_path = thumbnail_path
         self.publish_date = publish_date
         self.local_executable_path = LOCAL_CHROME_PATH
         self.headless = LOCAL_CHROME_HEADLESS
@@ -80,6 +81,16 @@ class BaseFileUploader(object):
         self.logger = create_logger (self.platform_name, f'logs/{self.platform_name}.log')
         # 是否跳过验证cookie有效性
         self.skip_cookie_verify = self.config["features"]["skip_cookie_verify"]
+        # 是否支持标题
+        self.title_supported = self.config["features"]["title"]
+        # 是否支持正文
+        self.textbox_supported = self.config["features"]["textbox"]
+        # 是否支持标签
+        self.tags_supported = self.config["features"]["tags"]
+        # 是否支持封面
+        self.thumbnail_supported = self.config["features"]["thumbnail"]
+        # 是否支持定时发布
+        self.schedule_supported = self.config["features"]["schedule"]
         # 视频/图文发布状态
         self.publish_status = False
         #按钮等待可见超时时间
@@ -199,13 +210,19 @@ class BaseFileUploader(object):
         await self.add_title_tags(page)
         self.logger.info(f"step7: {self.platform_name}标题和标签添加完成")
 
-        self.logger.info(f"step8: {self.platform_name}跳过设置缩略图")
+        # step8.上传视频封面
+        if self.thumbnail_supported and self.thumbnail:
+            await self.set_thumbnail(page)
+            self.logger.info(f"step8: {self.platform_name}视频封面上传完成")
+        else:
+            self.logger.info(f"step8: {self.platform_name}跳过设置缩略图")
 
         # step9.设置定时发布（如果需要）
-        if self.publish_date != 0:
+        if self.schedule_supported and self.publish_date != 0:
             await self.set_schedule_time(page, self.publish_date)
             self.logger.info(f"step9: {self.platform_name}定时发布设置完成")
-        self.logger.info(f"step9: {self.platform_name}跳过定时发布")
+        else:
+            self.logger.info(f"step9: {self.platform_name}跳过定时发布")
         
         # step10.点击发布
         await self.click_publish(page)
@@ -322,7 +339,7 @@ class BaseFileUploader(object):
         """
         try:
             # 输入标题
-            if self.title:
+            if self.title_supported and self.title:
                 # 使用find_button方法定位标题输入框，支持中文和英文界面
                 editor_button = await self.find_button(self.editor_button_locators)
                 if not editor_button:
@@ -341,7 +358,7 @@ class BaseFileUploader(object):
 
 
             # 输入正文
-            if self.text:
+            if self.textbox_supported and self.text:
                 textbox_button = await self.find_button(self.textbox_selectors)
                 if textbox_button:
                     self.logger.info(f"  [-] 将点击正文输入框: {await textbox_button.text_content()}")
@@ -356,7 +373,7 @@ class BaseFileUploader(object):
                 await page.wait_for_timeout(self.wait_timeout_500ms)  # 等待500毫秒
             
             # 输入标签（跟在正文后面）
-            if self.tags:
+            if self.tags_supported and self.tags:
                 await page.keyboard.press("Enter")
                 await page.keyboard.press("Enter")
                     
@@ -367,6 +384,18 @@ class BaseFileUploader(object):
                     await page.wait_for_timeout(self.wait_timeout_500ms)
         except Exception as e:
             self.logger.error(f"Failed to add title, text and tags: {str(e)}")
+
+    async def set_thumbnail(self, page):
+        if self.thumbnail_path:
+            self.logger.info(f"  [-] 将点击封面选择按钮: {await self.find_button(self.thumbnail_button_selectors).text_content()}")
+            await self.find_button(self.thumbnail_button_selectors).click()
+            self.logger.info(f"  [-] 将点击封面上传按钮: {await self.find_button(self.thumbnail_upload_selectors).text_content()}")
+            await self.find_button(self.thumbnail_upload_selectors).set_input_files(self.thumbnail_path)
+            await page.wait_for_timeout(2000)  # 等待2秒
+            self.logger.info(f"  [-] 将点击封面确认按钮: {await self.find_button(self.thumbnail_finish_selectors).text_content()}")
+            await self.find_button(self.thumbnail_finish_selectors).click()
+            self.logger.info(f"  [-] 将点击封面关闭按钮: {await self.find_button(self.thumbnail_close_selectors).text_content()}")
+            await self.find_button(self.thumbnail_close_selectors).click()
 
     async def set_schedule_time(self, page, publish_date):
         """
@@ -547,11 +576,11 @@ class BaseFileUploader(object):
 
 
 # 工厂函数和便捷函数
-async def run_upload(platform, account_file, file_type, file_path, title, text, tags, publish_date, **kwargs):
+async def run_upload(platform, account_file, file_type, file_path, title, text, tags, thumbnail_path, publish_date, **kwargs):
     """
     运行上传任务
     """
-    uploader = BaseFileUploader(platform, account_file, file_type, file_path, title, text, tags, publish_date)
+    uploader = BaseFileUploader(platform, account_file, file_type, file_path, title, text, tags, thumbnail_path, publish_date)
     return await uploader.main()
 
 
@@ -559,8 +588,8 @@ async def run_upload(platform, account_file, file_type, file_path, title, text, 
 # 小红书文件上传器
 class XiaohongshuFile(BaseFileUploader):
     """小红书文件上传器"""
-    def __init__(self, account_file, file_type, file_path, title, text, tags, publish_date):
-        super().__init__("xiaohongshu", account_file, file_type, file_path, title, text, tags, publish_date)
+    def __init__(self, account_file, file_type, file_path, title, text, tags, thumbnail_path, publish_date):
+        super().__init__("xiaohongshu", account_file, file_type, file_path, title, text, tags, thumbnail_path, publish_date)
 
 
 if __name__ == "__main__":
@@ -573,5 +602,6 @@ if __name__ == "__main__":
         "测试视频标题",
         "测试视频正文",
         "测试 标签",
+        "thumbnails/demo.jpg",
         0  # 立即发布
     ))

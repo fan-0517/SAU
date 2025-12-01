@@ -39,14 +39,19 @@ PLATFORM_CONFIGS = {
             "time_input": '[aria-label="Time"]',
         },
         "features": {
+            # 平台功能支持
+            #是否跳过Cookie验证
+            "skip_cookie_verify": True,
+            #是否支持标题
+            "title": True,
+            #是否支持正文
+            "textbox": True,
+            #是否支持标签
+            "tags": True,
             #是否支持封面
             "thumbnail": False,
             #是否支持定时发布
-            "schedule": False,
-            #是否支持标签
-            "tags": True,
-            #是否跳过Cookie验证 
-            "skip_cookie_verify": False
+            "schedule": False
         }
     },
     "tencent": {
@@ -70,10 +75,19 @@ PLATFORM_CONFIGS = {
             "time_input": ['input[placeholder="请选择时间"]'],
         },
         "features": {
-            "thumbnail": False,
-            "schedule": True,
+            # 平台功能支持
+            #是否跳过Cookie验证
+            "skip_cookie_verify": True,
+            #是否支持标题
+            "title": True,
+            #是否支持正文
+            "textbox": True,
+            #是否支持标签
             "tags": True,
-            "skip_cookie_verify": False
+            #是否支持封面
+            "thumbnail": False,
+            #是否支持定时发布
+            "schedule": False
         }
     },
     "douyin": {
@@ -97,10 +111,19 @@ PLATFORM_CONFIGS = {
             "time_input": ['.el-input__inner[placeholder="选择日期和时间"]'],
         },
         "features": {
-            "thumbnail": True,
-            "schedule": True,
+            # 平台功能支持
+            #是否跳过Cookie验证
+            "skip_cookie_verify": True,
+            #是否支持标题
+            "title": True,
+            #是否支持正文
+            "textbox": True,
+            #是否支持标签
             "tags": True,
-            "skip_cookie_verify": False
+            #是否支持封面
+            "thumbnail": False,
+            #是否支持定时发布
+            "schedule": False
         }
     },
     "kuaishou": {
@@ -129,10 +152,19 @@ PLATFORM_CONFIGS = {
             "time_input": ['div.ant-picker-input input[placeholder="选择日期时间"]'],
         },
         "features": {
-            "thumbnail": True,
-            "schedule": True,
+            # 平台功能支持
+            #是否跳过Cookie验证
+            "skip_cookie_verify": True,
+            #是否支持标题
+            "title": True,
+            #是否支持正文
+            "textbox": True,
+            #是否支持标签
             "tags": True,
-            "skip_cookie_verify": False
+            #是否支持封面
+            "thumbnail": False,
+            #是否支持定时发布
+            "schedule": False
         }
     },
     "tiktok": {
@@ -161,10 +193,19 @@ PLATFORM_CONFIGS = {
             "time_input": '[aria-label="Time"]',
         },
         "features": {
-            "thumbnail": False,
-            "schedule": False,
+            # 平台功能支持
+            #是否跳过Cookie验证
+            "skip_cookie_verify": True,
+            #是否支持标题
+            "title": True,
+            #是否支持正文
+            "textbox": True,
+            #是否支持标签
             "tags": True,
-            "skip_cookie_verify": False
+            #是否支持封面
+            "thumbnail": False,
+            #是否支持定时发布
+            "schedule": False
         }
     },
     "instagram": {
@@ -188,10 +229,19 @@ PLATFORM_CONFIGS = {
             "time_input": ['#video_upload > div > div:nth-child(2) > div > div.time > div > div > div:nth-child(2) > div > input'],
         },
         "features": {
-            "thumbnail": True,
-            "schedule": True,
+            # 平台功能支持
+            #是否跳过Cookie验证
+            "skip_cookie_verify": True,
+            #是否支持标题
+            "title": True,
+            #是否支持正文
+            "textbox": True,
+            #是否支持标签
             "tags": True,
-            "skip_cookie_verify": False
+            #是否支持封面
+            "thumbnail": False,
+            #是否支持定时发布
+            "schedule": False
         }
     },
     #facebook
@@ -217,10 +267,19 @@ PLATFORM_CONFIGS = {
             "time_input": ['.time-picker-input'],
         },
         "features": {
-            "thumbnail": True,
-            "schedule": True,
+            # 平台功能支持
+            #是否跳过Cookie验证
+            "skip_cookie_verify": True,
+            #是否支持标题
+            "title": True,
+            #是否支持正文
+            "textbox": True,
+            #是否支持标签
             "tags": True,
-            "skip_cookie_verify": False
+            #是否支持封面
+            "thumbnail": False,
+            #是否支持定时发布
+            "schedule": False
         }
     },
     "bilibili": {
@@ -245,10 +304,19 @@ PLATFORM_CONFIGS = {
             "time_input": ['.time-picker-input'],
         },
         "features": {
-            "thumbnail": True,
-            "schedule": True,
+            # 平台功能支持
+            #是否跳过Cookie验证
+            "skip_cookie_verify": True,
+            #是否支持标题
+            "title": True,
+            #是否支持正文
+            "textbox": True,
+            #是否支持标签
             "tags": True,
-            "skip_cookie_verify": False
+            #是否支持封面
+            "thumbnail": False,
+            #是否支持定时发布
+            "schedule": False
         }
     },
     #baijiahao
@@ -274,10 +342,19 @@ PLATFORM_CONFIGS = {
             "time_input": ['.time-picker-input'],
         },
         "features": {
-            "thumbnail": True,
-            "schedule": True,
+            # 平台功能支持
+            #是否跳过Cookie验证
+            "skip_cookie_verify": True,
+            #是否支持标题
+            "title": True,
+            #是否支持正文
+            "textbox": True,
+            #是否支持标签
             "tags": True,
-            "skip_cookie_verify": False
+            #是否支持封面
+            "thumbnail": False,
+            #是否支持定时发布
+            "schedule": False
         }
     }
 }

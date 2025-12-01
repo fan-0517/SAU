@@ -4,7 +4,7 @@ from conf import BASE_DIR
 from myUtils.baseFileUploader import BaseFileUploader, run_upload
 from utils.files_times import generate_schedule_time_next_day
 
-def post_file(platform, account_file, file_type, files, title, text,tags,enableTimer=False, videos_per_day=1, daily_times=None, start_days=0):
+def post_file(platform, account_file, file_type, files, title, text,tags,thumbnail_path, enableTimer=False, videos_per_day=1, daily_times=None, start_days=0):
     """
     发布文件到各种平台
     参数:
@@ -15,6 +15,7 @@ def post_file(platform, account_file, file_type, files, title, text,tags,enableT
         title: 视频标题
         text: 视频正文描述
         tags: 视频标签
+        thumbnail_path: 视频缩略图路径
         enableTimer: 是否开启定时发布
         videos_per_day: 每天发布视频数量
         daily_times: 每天发布时间列表
@@ -36,7 +37,7 @@ def post_file(platform, account_file, file_type, files, title, text,tags,enableT
             for cookie in account_file:
                 try:
                     # 使用独立的run_upload函数来执行上传
-                    publish_result = asyncio.run(run_upload(platform, cookie, file_type, file, title, text, tags, publish_datetimes))
+                    publish_result = asyncio.run(run_upload(platform, cookie, file_type, file, title, text, tags, thumbnail_path, publish_datetimes))
                     
                     # 是否成功发布
                     if publish_result:
