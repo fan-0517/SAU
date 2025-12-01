@@ -7,11 +7,10 @@ import uuid
 from pathlib import Path
 from queue import Queue
 from flask_cors import CORS
+from conf import BASE_DIR
 from myUtils.auth import check_cookie
 from flask import Flask, request, jsonify, Response, send_from_directory
-from conf import BASE_DIR
 from myUtils.login import douyin_cookie_gen, get_tencent_cookie, get_ks_cookie, xiaohongshu_cookie_gen, get_tiktok_cookie, get_instagram_cookie, get_facebook_cookie
-from myUtils.postVideo import post_video_tencent, post_video_DouYin, post_video_ks, post_video_xhs, post_video_TikTok, post_video_Instagram, post_video_Facebook
 from myUtils.multiFileUploader import post_file
 
 active_queues = {}
