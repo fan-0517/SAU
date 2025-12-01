@@ -69,7 +69,6 @@ PLATFORM_CONFIGS = {
             "upload_button": ['span.add-icon.weui-icon-outlined-add', 'div.upload-content'],
             "publish_button": ['button.weui-desktop-btn.weui-desktop-btn_primary:has-text("发表")', 'button.weui-desktop-btn:has-text("发表")'],
             "title_editor": ['input.weui-desktop-form__input[placeholder="概括视频主要内容，字数建议6-16个字符"]'],
-            #正文编辑器输入框选择器
             "textbox_selectors": [
                 'div.input-editor[contenteditable=""][data-placeholder="添加描述"]'
             ],
