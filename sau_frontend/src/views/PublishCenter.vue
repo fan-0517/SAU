@@ -245,7 +245,7 @@
                 plain 
                 @click="openAccountDialog(tab)"
                 class="select-account-btn"
-                :disabled="!tab.selectedPlatform"
+                :disabled="tab.selectedPlatforms.length === 0"
               >
                 选择账号
               </el-button>
