@@ -12,6 +12,7 @@ from myUtils.auth import check_cookie
 from flask import Flask, request, jsonify, Response, send_from_directory
 from myUtils.login import douyin_cookie_gen, get_tencent_cookie, get_ks_cookie, xiaohongshu_cookie_gen, get_tiktok_cookie, get_instagram_cookie, get_facebook_cookie
 from myUtils.multiFileUploader import post_file, post_multiple_files_to_multiple_platforms, post_single_file_to_multiple_platforms
+from myUtils.platform_configs import get_platform_key_by_type
 
 active_queues = {}
 app = Flask(__name__)
@@ -653,27 +654,13 @@ def postVideo():
     print("File List:", file_list)
     print("Account List:", account_list)
     #根据type获取platform
-    match type:
-        case 1:
-            platform = 'xiaohongshu'
-        case 2:
-            platform = 'tencent'
-        case 3:
-            platform = 'douyin'
-        case 4:
-            platform = 'kuaishou'
-        case 5:
-            platform = 'tiktok'
-        case 6:
-            platform = 'instagram'
-        case 7:
-            platform = 'facebook'
-        case _:
-            return jsonify({
-                "code": 400,
-                "msg": "Invalid type",
-                "data": None
-            }), 400
+    platform = get_platform_key_by_type(type)
+    if not platform:
+        return jsonify({
+            "code": 400,
+            "msg": "Invalid type",
+            "data": None
+        }), 400
 
     post_file(platform, account_list, file_type, file_list, title, text, tags, thumbnail_path, location, enableTimer, videos_per_day, daily_times,start_days)
     # 返回响应给客户端

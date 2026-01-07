@@ -4,7 +4,7 @@ PLATFORM_CONFIGS = {
         #平台类型编号
         "type": 1,
         #平台名称
-        "platform_name": "xhs",
+        "platform_name": "xiaohongshu",
         #平台个人中心URL
         "personal_url": "https://creator.xiaohongshu.com/new/home",
         #平台登录URL
@@ -60,7 +60,7 @@ PLATFORM_CONFIGS = {
     },
     "tencent": {
         "type": 2,
-        "platform_name": "tc",
+        "platform_name": "tencent",
         "personal_url": "https://channels.weixin.qq.com/platform/",
         "login_url": "https://channels.weixin.qq.com/login.html",
         "creator_video_url": "https://channels.weixin.qq.com/platform/post/create",
@@ -99,7 +99,7 @@ PLATFORM_CONFIGS = {
     },
     "douyin": {
         "type": 3,
-        "platform_name": "dy",
+        "platform_name": "douyin",
         "personal_url": "https://creator.douyin.com/creator-micro/home",
         "login_url": "https://creator.douyin.com/login",
         "creator_video_url": "https://creator.douyin.com/creator-micro/content/upload",
@@ -136,7 +136,7 @@ PLATFORM_CONFIGS = {
     },
     "kuaishou": {
         "type": 4,
-        "platform_name": "ks",
+        "platform_name": "kuaishou",
         "personal_url": "https://cp.kuaishou.com/profile",
         "login_url": "https://passport.kuaishou.com/pc/account/login",
         "creator_video_url": "https://cp.kuaishou.com/article/publish/video?tabType=1",
@@ -181,7 +181,7 @@ PLATFORM_CONFIGS = {
     },
     "tiktok": {
         "type": 5,
-        "platform_name": "tk",
+        "platform_name": "tiktok",
         "personal_url": "https://www.tiktok.com/",
         "login_url": "https://www.tiktok.com/login?lang=en",
         "creator_video_url": "https://www.tiktok.com/tiktokstudio/upload?lang=en",
@@ -221,7 +221,7 @@ PLATFORM_CONFIGS = {
     },
     "instagram": {
         "type": 6,
-        "platform_name": "ig",
+        "platform_name": "instagram",
         "personal_url": "https://www.instagram.com/me/",
         "login_url": "https://www.instagram.com/accounts/login/",
         "creator_video_url": "https://business.facebook.com/latest/composer",
@@ -262,7 +262,7 @@ PLATFORM_CONFIGS = {
     #facebook
     "facebook": {
         "type": 7,
-        "platform_name": "fb",
+        "platform_name": "facebook",
         "personal_url": "https://www.facebook.com/profile.php",
         "login_url": "https://www.facebook.com/login",
         "creator_video_url": "https://www.facebook.com/",
@@ -309,7 +309,7 @@ PLATFORM_CONFIGS = {
     },
     "bilibili": {
         "type": 8,
-        "platform_name": "bl",
+        "platform_name": "bilibili",
         "personal_url": "https://member.bilibili.com/v2#/home",
         "login_url": "https://passport.bilibili.com/login",
         "creator_video_url": "https://member.bilibili.com/v2#/upload/manual",
@@ -351,7 +351,7 @@ PLATFORM_CONFIGS = {
     #baijiahao
     "baijiahao": {
         "type": 9,
-        "platform_name": "bjh",
+        "platform_name": "baijiahao",
         "personal_url": "https://baijiahao.baidu.com/builder/rc/list",
         "login_url": "https://baijiahao.baidu.com/builder/rc/login",
         "creator_video_url": "https://baijiahao.baidu.com/builder/rc/edit",
@@ -393,4 +393,28 @@ PLATFORM_CONFIGS = {
 }
 
 # 导出配置以便其他模块导入
-__all__ = ['PLATFORM_CONFIGS']
+__all__ = ['PLATFORM_CONFIGS', 'get_platform_key_by_type', 'get_type_by_platform_key']
+
+
+def get_platform_key_by_type(type):
+    """
+    通过平台类型编号查找平台key
+    :param type: 平台类型编号
+    :return: 平台key，如果没有找到则返回None
+    """
+    for platform_key, config in PLATFORM_CONFIGS.items():
+        if config['type'] == type:
+            return platform_key
+    return None
+
+
+def get_type_by_platform_key(platform_key):
+    """
+    通过平台key查找平台类型编号
+    :param platform_key: 平台key
+    :return: 平台类型编号，如果没有找到则返回None
+    """
+    config = PLATFORM_CONFIGS.get(platform_key)
+    if config:
+        return config['type']
+    return None

@@ -195,7 +195,7 @@ class BaseFileUploader(object):
             # step3.创建新页面，导航到上传页面，明确指定等待domcontentloaded状态
             page = await context.new_page()
             #tiktok平台需要先切换到英文
-            if self.platform_name == "tk":
+            if self.platform_name == "tiktok":
                 await self.change_language(page)
             # 根据文件类型选择上传页面
             if self.file_type == 1:
@@ -332,7 +332,7 @@ class BaseFileUploader(object):
         while True:
             try:
                 #快手平台比较特殊，没传完也可以点击发布按钮，需要等编辑画布按钮出现，才算是上传完毕
-                if self.platform_name == "ks":
+                if self.platform_name == "kuaishou":
                     number = await page.locator("text=上传中").count()
                     if number == 0:
                         self.logger.success("图文/视频上传完毕")
@@ -507,7 +507,7 @@ class BaseFileUploader(object):
                     await publish_button.click()
                     await asyncio.sleep(self.check_interval)
                     # tiktok平台发布时要检查并处理版权检查弹窗
-                    if self.platform_name == "tk":
+                    if self.platform_name == "tiktok":
                         # 等待版权检查弹窗出现
                         try:
                             await page.wait_for_selector('button.TUXButton.TUXButton--primary div.TUXButton-label:has-text("Post now")', timeout=5000)
@@ -585,7 +585,7 @@ class BaseFileUploader(object):
             
             try:
                 #douyin平台判断方式比较特殊
-                if self.platform_name == "dy":
+                if self.platform_name == "douyin":
                     # 检查是否登录成功
                     if await page.get_by_text('登录/注册').count() or await page.get_by_text('扫码登录').count() or await page.get_by_placeholder('请输入手机号').count() or await page.locator('input[name="normal-input"]').count():
                         print("Cookie已过期")
