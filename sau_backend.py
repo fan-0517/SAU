@@ -223,73 +223,90 @@ def getAccounts():
 
 @app.route("/getValidAccounts",methods=['GET'])
 async def getValidAccounts():
-    platform_type = request.args.get('type', type=int, default=0)
-    
-    with sqlite3.connect(Path(BASE_DIR / "db" / "database.db")) as conn:
-        cursor = conn.cursor()
-        if platform_type == 0:
-            cursor.execute("SELECT * FROM user_info")
-        else:
-            cursor.execute("SELECT * FROM user_info WHERE type = ?", (platform_type,))
-        rows = cursor.fetchall()
-        rows_list = [list(row) for row in rows]
-        print("\n📋 当前数据表内容：")
-        for row in rows:
-            print(row)
-        # 定义并发限制数量
-        CONCURRENCY_LIMIT = 10  # 可以根据系统资源调整
+    try:
+        platform_type = request.args.get('type', type=int, default=0)
         
-        # 使用并发方式验证cookie
-        async def check_and_update_cookie(row):
-            flag = await check_cookie(row[1], row[2])
-            if not flag:
-                row[4] = 0
-                # 注意：这里不执行数据库更新，而是返回需要更新的行ID
-                return row[0]
-            return None
-        
-        # 分批处理以控制并发数量
-        def chunked_list(lst, chunk_size):
-            for i in range(0, len(lst), chunk_size):
-                yield lst[i:i + chunk_size]
-        
-        print(f"\n🔄 开始并发验证账号状态（并发数: {CONCURRENCY_LIMIT}）...")
-        
-        # 记录需要更新的账号ID
-        ids_to_update = []
-        
-        # 分批处理所有账号
-        for batch in chunked_list(rows_list, CONCURRENCY_LIMIT):
-            # 为当前批次中的每个账号创建验证任务
-            tasks = [check_and_update_cookie(row) for row in batch]
-            # 并发执行当前批次的所有任务
-            results = await asyncio.gather(*tasks)
-            # 收集需要更新的账号ID
-            for account_id in results:
-                if account_id is not None:
-                    ids_to_update.append(account_id)
-        
-        # 批量更新数据库，减少数据库操作次数
-        if ids_to_update:
-            # 使用批量更新语句
-            placeholders = ','.join(['?' for _ in ids_to_update])
-            cursor.execute(f'''
-            UPDATE user_info 
-            SET status = 0 
-            WHERE id IN ({placeholders})
-            ''', ids_to_update)
-            conn.commit()
-            print(f"✅ 已批量更新 {len(ids_to_update)} 个失效账号的状态")
-        else:
-            print("✅ 所有账号状态均有效，无需更新")
-        for row in rows:
-            print(row)
+        with sqlite3.connect(Path(BASE_DIR / "db" / "database.db")) as conn:
+            cursor = conn.cursor()
+            if platform_type == 0:
+                cursor.execute("SELECT * FROM user_info")
+            else:
+                cursor.execute("SELECT * FROM user_info WHERE type = ?", (platform_type,))
+            rows = cursor.fetchall()
+            rows_list = [list(row) for row in rows]
+            print("\n📋 当前数据表内容：")
+            for row in rows:
+                print(row)
+            # 定义并发限制数量
+            CONCURRENCY_LIMIT = 10  # 可以根据系统资源调整
+            
+            # 使用并发方式验证cookie
+            async def check_and_update_cookie(row):
+                try:
+                    flag = await check_cookie(row[1], row[2])
+                    if not flag:
+                        row[4] = 0
+                        # 注意：这里不执行数据库更新，而是返回需要更新的行ID
+                        return row[0]
+                    return None
+                except Exception as e:
+                    print(f"❌ 验证账号 {row[3]} (ID: {row[0]}) 时出错: {str(e)}")
+                    # 验证失败，标记为失效
+                    row[4] = 0
+                    return row[0]
+            
+            # 分批处理以控制并发数量
+            def chunked_list(lst, chunk_size):
+                for i in range(0, len(lst), chunk_size):
+                    yield lst[i:i + chunk_size]
+            
+            print(f"\n🔄 开始并发验证账号状态（并发数: {CONCURRENCY_LIMIT}）...")
+            
+            # 记录需要更新的账号ID
+            ids_to_update = []
+            
+            # 分批处理所有账号
+            for batch in chunked_list(rows_list, CONCURRENCY_LIMIT):
+                # 为当前批次中的每个账号创建验证任务
+                tasks = [check_and_update_cookie(row) for row in batch]
+                # 并发执行当前批次的所有任务，return_exceptions=True确保即使某个任务失败，其他任务仍能继续执行
+                results = await asyncio.gather(*tasks, return_exceptions=True)
+                # 收集需要更新的账号ID，过滤掉异常结果
+                for result in results:
+                    if isinstance(result, Exception):
+                        print(f"⚠️  批次处理中遇到异常: {str(result)}")
+                    elif result is not None:
+                        ids_to_update.append(result)
+            
+            # 批量更新数据库，减少数据库操作次数
+            if ids_to_update:
+                # 使用批量更新语句
+                placeholders = ','.join(['?' for _ in ids_to_update])
+                cursor.execute(f'''
+                UPDATE user_info 
+                SET status = 0 
+                WHERE id IN ({placeholders})
+                ''', ids_to_update)
+                conn.commit()
+                print(f"✅ 已批量更新 {len(ids_to_update)} 个失效账号的状态")
+            else:
+                print("✅ 所有账号状态均有效，无需更新")
+            for row in rows:
+                print(row)
+            return jsonify(
+                            {
+                                "code": 200,
+                                "msg": None,
+                                "data": rows_list
+                            }),200
+    except Exception as e:
+        print(f"❌ 获取有效账号列表时发生异常: {str(e)}")
         return jsonify(
-                        {
-                            "code": 200,
-                            "msg": None,
-                            "data": rows_list
-                        }),200
+                    {
+                        "code": 500,
+                        "msg": f"获取有效账号列表失败: {str(e)}",
+                        "data": None
+                    }), 500
 
 @app.route('/deleteFile', methods=['GET'])
 def delete_file():
