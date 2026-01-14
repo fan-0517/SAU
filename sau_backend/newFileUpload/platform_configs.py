@@ -32,6 +32,8 @@ PLATFORM_CONFIGS = {
             ],
             #封面按钮选择器
             "thumbnail_button": ["//span[contains(text(), 'Add')]", "//span[contains(text(), '添加')]"],
+            #封面确认按钮选择器
+            "thumbnail_finish": ['button.cheetah-btn.cheetah-btn-primary.cheetah-btn-solid:has-text("确定")'],
             #定时按钮选择器
             "schedule_button": ["//span[text()='Schedule']", "//span[text()='定时']"],
             #日期输入选择器
@@ -74,6 +76,7 @@ PLATFORM_CONFIGS = {
                 'div.input-editor[contenteditable=""][data-placeholder="添加描述"]'
             ],
             "thumbnail_button": ["//span[contains(text(), '添加封面')]"],
+            "thumbnail_finish": ['button.cheetah-btn.cheetah-btn-primary.cheetah-btn-solid:has-text("确定")'],
             "schedule_button": ['label:has-text("定时")'],
             "date_input": ['input[placeholder="请选择发表时间"]'],
             "time_input": ['input[placeholder="请选择时间"]'],
@@ -111,6 +114,7 @@ PLATFORM_CONFIGS = {
             "title_editor": ['input[placeholder="填写作品标题，为作品获得更多流量"]', 'input.semi-input.semi-input-default'],
             "textbox_selectors": ['div[data-line-wrapper="true"]', 'div.zone-container.editor-kit-container.editor.editor-comp-publish[contenteditable="true"]'],
             "thumbnail_button": ["//span[contains(text(), '添加封面')]"],
+            "thumbnail_finish": ['button.semi-button-content-right:has-text("完成")'],
             "schedule_button": ['button:has-text("定时发布")'],
             "date_input": ['.el-input__inner[placeholder="选择日期和时间"]'],
             "time_input": ['.el-input__inner[placeholder="选择日期和时间"]'],
@@ -156,6 +160,7 @@ PLATFORM_CONFIGS = {
                 '[contenteditable="true"][placeholder*="添加合适的话题和描述"]',
             ],
             "thumbnail_button": ["//span[contains(text(), '封面编辑')]"],
+            "thumbnail_finish": ['button:has-text("完成")'],
             "schedule_button": ['label:text("发布时间") + div .ant-radio-input'],
             "date_input": ['div.ant-picker-input input[placeholder="选择日期时间"]'],
             "time_input": ['div.ant-picker-input input[placeholder="选择日期时间"]'],
@@ -196,6 +201,7 @@ PLATFORM_CONFIGS = {
                 'div.caption-editor'
             ],
             "thumbnail_button": [".cover-container"],
+            "thumbnail_finish": ['button:has-text("Done")'],
             "schedule_button": ["//span[text()='Schedule']", "//span[text()='定时']"],
             "date_input": '[aria-label="Date"]',
             "time_input": '[aria-label="Time"]',
@@ -236,6 +242,7 @@ PLATFORM_CONFIGS = {
                 'div.tiptap.ProseMirror[contenteditable="true"][role="textbox"]'
             ],
             "thumbnail_button": ["//span[contains(text(), '选择封面')]"],
+            "thumbnail_finish": ['button:has-text("完成")'],
             "schedule_button": ['#video_upload > div > div:nth-child(2) > div > div.time > div > div > div:nth-child(2) > label'],
             "date_input": ['#video_upload > div > div:nth-child(2) > div > div.time > div > div > div:nth-child(2) > div > input'],
             "time_input": ['#video_upload > div > div:nth-child(2) > div > div.time > div > div > div:nth-child(2) > div > input'],
@@ -284,6 +291,7 @@ PLATFORM_CONFIGS = {
                 'div.tiptap.ProseMirror[contenteditable="true"][role="textbox"]'
             ],
             "thumbnail_button": ["//span[contains(text(), 'Add')]","//span[contains(text(), '添加')]"],
+            "thumbnail_finish": ['button:has-text("完成")'],
             "schedule_button": ["//span[text()='Schedule']","//span[text()='定时']"],
             "date_input": ['.date-picker-input'],
             "time_input": ['.time-picker-input'],
@@ -325,6 +333,7 @@ PLATFORM_CONFIGS = {
                 'div.ql-editor.ql-blank[contenteditable="true"][data-placeholder="填写更全面的相关信息，让更多的人能找到你的视频吧"]'
             ],
             "thumbnail_button": ["//span[contains(text(), '添加封面')]"],
+            "thumbnail_finish": ['button:has-text("完成")'],
             "schedule_button": ['button:has-text("定时发布")'],
             "date_input": ['.date-picker-input'],
             "time_input": ['.time-picker-input'],
