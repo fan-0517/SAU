@@ -262,7 +262,9 @@ const platformMap = {
   4: { name: '快手', type: 'kuaishou' },
   5: { name: 'TikTok', type: 'tiktok' },
   6: { name: 'Instagram', type: 'instagram' },
-  7: { name: 'Facebook', type: 'facebook' }
+  7: { name: 'Facebook', type: 'facebook' },
+  8: { name: '哔哩哔哩', type: 'bilibili' },
+  9: { name: '百家号', type: 'baijiahao' }
 }
 
 // 获取平台统计数据
@@ -297,6 +299,8 @@ async function fetchPlatformStats() {
         if (platform.name === 'TikTok') platformStats.tiktok = stat.total
         if (platform.name === 'Instagram') platformStats.instagram = stat.total
         if (platform.name === 'Facebook') platformStats.facebook = stat.total
+        if (platform.name === '哔哩哔哩') platformStats.bilibili = stat.total
+        if (platform.name === '百家号') platformStats.baijiahao = stat.total
       })
     }
   } catch (error) {
@@ -337,6 +341,8 @@ const getPlatformTagType = (platform) => {
     'TikTok': 'primary',
     'Instagram': 'primary',
     'Facebook': 'primary',
+    '哔哩哔哩': 'info',
+    '百家号': 'warning',
     '未知': 'default'
   }
   return typeMap[platform] || 'default'
