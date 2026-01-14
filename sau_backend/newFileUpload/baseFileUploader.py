@@ -67,6 +67,10 @@ class BaseFileUploader(object):
         self.editor_button_locators = self.config["selectors"]["title_editor"]
         # 正文编辑器输入框选择器
         self.textbox_selectors = self.config["selectors"]["textbox_selectors"]
+        # 封面上传选择器
+        self.thumbnail_button_selectors = self.config["selectors"]["thumbnail_button"]
+        # 封面完成确认选择器
+        self.thumbnail_finish_selectors = self.config["selectors"]["thumbnail_finish"]
         # 发布时间选择器
         self.schedule_button_selectors = self.config["selectors"]["schedule_button"]
         
@@ -228,7 +232,7 @@ class BaseFileUploader(object):
             self.logger.info(f"step7: {self.platform_name}标题和标签添加完成")
 
             # step8.上传视频封面
-            if self.thumbnail_supported and self.thumbnail:
+            if self.thumbnail_supported:
                 await self.set_thumbnail(page)
                 self.logger.info(f"step8: {self.platform_name}视频封面上传完成")
             else:
@@ -449,6 +453,19 @@ class BaseFileUploader(object):
             await self.find_button(self.thumbnail_finish_selectors).click()
             self.logger.info(f"  [-] 将点击封面关闭按钮: {await self.find_button(self.thumbnail_close_selectors).text_content()}")
             await self.find_button(self.thumbnail_close_selectors).click()
+            await page.wait_for_timeout(2000)  # 等待2秒
+        else:
+            self.logger.info("  [-] 将点击封面选择按钮")
+            thumbnail_button = await self.find_button(self.thumbnail_button_selectors)
+            if thumbnail_button:
+                await thumbnail_button.click()
+            await page.wait_for_timeout(2000)  # 等待2秒
+            self.logger.info("  [-] 将点击封面确认按钮")
+            thumbnail_finish =await self.find_button(self.thumbnail_finish_selectors)
+            if thumbnail_finish:
+                await thumbnail_finish.click()
+            await page.wait_for_timeout(2000)  # 等待2秒
+
 
     async def set_location(self, page):
         """

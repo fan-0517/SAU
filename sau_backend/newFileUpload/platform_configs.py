@@ -358,15 +358,34 @@ PLATFORM_CONFIGS = {
         "creator_video_url": "https://baijiahao.baidu.com/builder/rc/edit?type=videoV2&is_from_cms=1",
         "creator_image_url": "https://baijiahao.baidu.com/builder/rc/edit?type=news&is_from_cms=1",
         "selectors": {
-            "upload_button": ['#root > div > div.mp-container.mp-container-edit > div > div.scale-box > div > div > div > section > div > div.video-main-container > div.e844194154160364-blankWrap > div > div._5eb0d99a7a8a2180-inputWrap > div'],
-            "publish_button": ['#new-operator-content > div > span > span.op-list-right > div:nth-child(3) > button > span'],
+            "upload_button": [
+                'div._5eb0d99a7a8a2180-uploadEventContainer',
+                '#root > div > div.mp-container.mp-container-edit > div > div.scale-box > div > div > div > section > div > div.video-main-container > div.e844194154160364-blankWrap > div > div._5eb0d99a7a8a2180-inputWrap > div',
+                'xpath=/html/body/div/div/div[1]/div/div[2]/div/div/div/section/div/div[1]/div[1]/div/div[2]/div'
+                ],
+            "publish_button": [
+                '#new-operator-content > div > span > span.op-list-right > div:nth-child(3) > button',
+                'xpath=/html/body/div[1]/div/div[1]/div/div[2]/div/div/div/div[3]/div/span/span[2]/div[3]/button'
+                ],
             #标题编辑器选择器
-            "title_editor": ['#formMain > form > div.left-area-content-box > div:nth-child(2) > div.form-inner-wrap.tags-container.videov2-title-wrap > div > div.cheetah-public.cheetah-textArea.acss-zwcv9m.autoSize > textarea'],
+            "title_editor": [
+                '#formMain > form > div.left-area-content-box > div:nth-child(2) > div.form-inner-wrap.tags-container.videov2-title-wrap > div > div.cheetah-public.cheetah-textArea.acss-zwcv9m.autoSize > textarea',
+                'xpath=/html/body/div/div/div[1]/div/div[2]/div/div/div/div[2]/div/form/div[1]/div[2]/div[2]/div/div[1]/textarea'
+                ],
             #正文编辑器输入框选择器
             "textbox_selectors": [
-                '#formMain > form > div.left-area-content-box > div.more-information-content > div:nth-child(2) > div.form-inner-wrap > div'
+                '#desc',
+                'xpath=/html/body/div/div/div[1]/div/div[2]/div/div/div/div[2]/div/form/div[1]/div[11]/div[2]/div[2]/div/textarea'
             ],
-            "thumbnail_button": ["//span[contains(text(), '添加封面')]"],
+            "thumbnail_button": [
+                "#formMain > form > div.left-area-content-box > div.form-item-line-content-24.form-item-line-content-cover.form-cover > div.form-inner-wrap > div.d01689d7d733c6fb-coverWrap > div:nth-child(1) > div > span > div > span > div > div > div > div > div.d820b38cbcd0c526-icon",
+                'xpath=/html/body/div[1]/div/div[1]/div/div[2]/div/div/div/div[2]/div/form/div[1]/div[1]/div[2]/div[1]/div[1]/div/span/div/span/div/div/div/div'
+            ],
+            "thumbnail_finish": [
+                '#rc-tabs-0-panel-1 > div > div._37e9eeb539c7e75d-footer > button.cheetah-btn.css-zneqgo.cheetah-btn-primary.cheetah-btn-solid.cheetah-public.acss-qlkyg1.acss-1kjo6pu.acss-1tjgk22.acss-yhl6pe.acss-uv0qn4.acss-58e25w.acss-1grxnxm.acss-1izrri0.cheetah-btn-L.cheetah-btn-text-primary',
+                'xpath=/html/body/div[2]/div/div[2]/div/div[1]/div/div/div/div[2]/div/div/div/div[2]/button[2]',
+                'button.cheetah-btn.cheetah-btn-primary.cheetah-btn-solid:has-text("确定")'
+            ],
             "schedule_button": ['button:has-text("定时发布")'],
             "date_input": ['.date-picker-input'],
             "time_input": ['.time-picker-input'],
@@ -384,7 +403,7 @@ PLATFORM_CONFIGS = {
             #是否支持标签
             "tags": True,
             #是否支持封面
-            "thumbnail": False,
+            "thumbnail": True,
             #是否支持地点
             "location": False,
             #是否支持定时发布
