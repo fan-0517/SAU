@@ -1,7 +1,7 @@
 <template>
   <div class="dashboard">
     <div class="page-header">
-      <h1>自媒体运营系统</h1>
+      <h1>自媒体发布平台</h1>
     </div>
     
     <div class="dashboard-content">

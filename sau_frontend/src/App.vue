@@ -6,7 +6,7 @@
           <div class="logo">
             <img v-show="isCollapse" src="@/assets/yun.svg" alt="Logo" class="logo-img">
             <img v-show="!isCollapse" src="@/assets/yun.svg" alt="Logo" class="logo-img">
-            <h2 v-show="!isCollapse">自媒体运营系统</h2>
+            <h2 v-show="!isCollapse">自媒体发布平台</h2>
           </div>
           <el-menu
             :router="true"
