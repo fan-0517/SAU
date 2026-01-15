@@ -1,5 +1,23 @@
 # 自媒体智能运营系统 (SAU)
 
+<div align="center">
+  <img src="https://via.placeholder.com/200x100?text=SAU+Logo" alt="SAU Logo" width="200" height="100">
+  <h3>🚀 多平台自媒体智能运营系统</h3>
+  <p>支持图文和视频内容的批量上传与定时发布，实现多平台自动化运营</p>
+  
+  <p>
+    <a href="https://github.com/fan-0517/SAU.git" target="_blank">
+      <img src="https://img.shields.io/github/stars/fan-0517/SAU?style=social" alt="GitHub stars">
+    </a>
+    <a href="https://github.com/fan-0517/SAU.git" target="_blank">
+      <img src="https://img.shields.io/github/forks/fan-0517/SAU?style=social" alt="GitHub forks">
+    </a>
+    <img src="https://img.shields.io/badge/license-MIT-green" alt="MIT License">
+    <img src="https://img.shields.io/badge/python-3.10-blue" alt="Python 3.10">
+    <img src="https://img.shields.io/badge/node.js-18+-brightgreen" alt="Node.js 18+">
+  </p>
+</div>
+
 ## 项目地址
 
 [GitHub 仓库](https://github.com/fan-0517/SAU.git)
@@ -16,6 +34,7 @@ SAU (Social Auto Upload) 是一个功能强大的自媒体智能运营系统，�
 - **定时发布**：灵活的定时发布功能，支持自定义发布时间和发布频率
 - **统一管理**：提供统一的Web界面，集中管理所有发布任务
 - **易于扩展**：模块化设计，便于添加新平台支持
+- **双版本上传系统**：新版通用基类架构 + 旧版平台独立实现，确保系统稳定性
 
 ## 项目架构
 
@@ -62,6 +81,32 @@ SAU (Social Auto Upload) 是一个功能强大的自媒体智能运营系统，�
 - **实时状态反馈**：发布任务状态实时更新
 - **文件管理**：可视化的文件上传和管理界面
 - **账号管理**：集中管理所有平台账号
+- **发布中心**：创建和管理发布任务
+- **任务记录**：查看和管理发布任务记录
+
+## 技术栈
+
+### 后端技术
+
+| 技术 | 版本 | 用途 |
+|------|------|------|
+| Flask | 2.0+ | Web 框架 |
+| Playwright | 1.30+ | 浏览器自动化 |
+| SQLite | 3 | 数据库 |
+| asyncio | - | 异步处理 |
+| pathlib | - | 文件管理 |
+
+### 前端技术
+
+| 技术 | 版本 | 用途 |
+|------|------|------|
+| Vue 3 | - | 前端框架 |
+| Vite | 6.4+ | 构建工具 |
+| Element Plus | - | UI 组件库 |
+| Vue Router | 4 | 路由管理 |
+| Pinia | - | 状态管理 |
+| Axios | - | HTTP 请求库 |
+| Sass | - | CSS 预处理器 |
 
 ## 项目结构
 
@@ -72,17 +117,16 @@ sau/
 ├── requirements.txt       # Python 依赖包
 ├── sau_backend/           # 后端项目
 │   ├── README.md          # 后端说明文档
-│   ├── conf.example.py    # 配置文件示例
-│   ├── conf.py            # 配置文件（需自行创建）
+│   ├── conf.py            # 配置文件
 │   ├── sau_backend.py     # 后端主入口文件
 │   ├── myUtils/           # 核心工具模块
 │   │   ├── auth.py        # 认证相关功能
 │   │   └── login.py       # 登录相关功能
-│   ├── newFileUpload/     # 新版文件上传实现
+│   ├── newFileUpload/     # 新版文件上传实现（推荐）
 │   │   ├── baseFileUploader.py    # 通用上传器基类
 │   │   ├── multiFileUploader.py   # 多文件上传处理
 │   │   └── platform_configs.py    # 平台配置
-│   ├── oldFileUpload/     # 旧版文件上传实现
+│   ├── oldFileUpload/     # 旧版文件上传实现（备用）
 │   │   ├── examples/      # 示例脚本
 │   │   └── uploader/      # 各平台上传器实现
 │   └── utils/             # 工具函数
@@ -90,7 +134,17 @@ sau/
 │       ├── log.py                 # 日志管理
 │       └── stealth.min.js         # 浏览器隐藏脚本
 ├── sau_frontend/          # 前端项目
+│   ├── README.md          # 前端说明文档
 │   ├── src/               # 前端源代码
+│   │   ├── api/           # API 接口
+│   │   ├── components/    # 公共组件
+│   │   ├── router/        # 路由配置
+│   │   ├── stores/        # 状态管理
+│   │   ├── styles/        # 样式文件
+│   │   ├── utils/         # 工具函数
+│   │   ├── views/         # 页面组件
+│   │   ├── App.vue        # 根组件
+│   │   └── main.js        # 入口文件
 │   ├── public/            # 静态资源
 │   ├── package.json       # npm 配置
 │   └── vite.config.js     # Vite 配置
@@ -102,38 +156,21 @@ sau/
 └── videos/                # 示例视频文件
 ```
 
-## 技术栈
-
-### 后端技术
-
-- **Web 框架**: Flask 2.0+
-- **浏览器自动化**: Playwright 1.30+
-- **数据库**: SQLite 3
-- **异步处理**: asyncio
-- **文件管理**: pathlib
-- **日志管理**: 自定义日志模块
-- **API 设计**: RESTful API
-
-### 前端技术
-
-- **框架**: Vue 3
-- **构建工具**: Vite
-- **UI 组件库**: Element Plus
-- **状态管理**: Pinia
-- **HTTP 客户端**: Axios
-- **CSS 预处理器**: SCSS
-
 ## 核心功能
 
 ### 1. 多平台支持
 
-- ✅ 小红书
-- ✅ 腾讯视频号
-- ✅ 抖音
-- ✅ 快手
-- ✅ TikTok
-- ✅ Instagram
-- ✅ Facebook
+| 平台 | 新版支持 | 旧版支持 |
+|------|----------|----------|
+| 小红书 | ✅ | ✅ |
+| 腾讯视频号 | ✅ | ✅ |
+| 抖音 | ✅ | ✅ |
+| 快手 | ✅ | ✅ |
+| TikTok | ✅ | ✅ |
+| Instagram | ✅ | ❌ |
+| Facebook | ✅ | ❌ |
+| B站 | ✅ | ✅ |
+| 百家号 | ✅ | ✅ |
 
 ### 2. 内容类型支持
 
@@ -154,6 +191,8 @@ sau/
 - ✅ 发布历史记录
 - ✅ 账号管理（添加、编辑、删除）
 - ✅ Cookie 管理（上传、下载）
+- ✅ 平台统计数据
+- ✅ 任务状态监控
 
 ### 5. 系统功能
 
@@ -161,85 +200,72 @@ sau/
 - ✅ 错误处理
 - ✅ 日志记录
 - ✅ 状态反馈
+- ✅ 双版本上传系统
 
 ## 安装指南
 
-### 1. 克隆项目
+### 环境要求
+
+- **后端**：Python 3.10, Chrome 浏览器
+- **前端**：Node.js 18+, npm 9+
+
+### 快速开始
+#### 首次启动项目
+
+1. **克隆项目**
 
 ```bash
 git clone https://github.com/fan-0517/SAU.git
 cd SAU
 ```
 
-### 2. 安装依赖
-
-建议在虚拟环境中安装依赖：
-
-#### 使用 Conda（推荐）
+2. **安装 Python 依赖**
 
 ```bash
-conda create -n sau python=3.10
-conda activate sau
-# 挂载清华镜像加速安装
-pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
-```
-
-#### 使用 venv
-
-```bash
+# 创建虚拟环境（推荐）
 python -m venv venv
+
+# 激活虚拟环境
 # Windows
-env\Scripts\activate
+venv\Scripts\activate
 # Linux/MacOS
 source venv/bin/activate
+
+# 安装依赖
 pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
 ```
 
-### 3. 安装 Playwright 浏览器驱动
+3. **安装 Playwright 浏览器驱动**
 
 ```bash
 playwright install chromium firefox
 ```
 
-根据您的需求，至少需要安装 `chromium`。`firefox` 主要用于 TikTok 上传（旧版）。
+根据您的需求，至少需要安装 `chromium`。`firefox` 主要用于 TikTok 上传。
 
-### 4. 配置文件
-
-复制 `sau_backend/conf.example.py` 并重命名为 `sau_backend/conf.py`：
+4. **初始化数据库**
 
 ```bash
-cp sau_backend/conf.example.py sau_backend/conf.py
+# 运行数据库初始化脚本
+python db/createTable.py
 ```
 
-在 `sau_backend/conf.py` 中，您需要配置以下内容：
+5. **配置 Chrome 浏览器路径**
 
-- `LOCAL_CHROME_PATH`: 本地 Chrome 浏览器的路径，例如：
-  - Windows: `C:\Program Files\Google\Chrome\Application\chrome.exe`
-  - Linux: `/usr/bin/google-chrome`
-  - MacOS: `/Applications/Google Chrome.app/Contents/MacOS/Google Chrome`
+修改 `sau_backend/conf.py` 文件底部的 `LOCAL_CHROME_PATH` 为本地 Chrome 浏览器地址：
 
-### 5. 创建必要的文件夹
+```python
+# Windows 示例
+LOCAL_CHROME_PATH = "C:\Program Files\Google\Chrome\Application\chrome.exe"
 
-```bash
-mkdir -p cookiesFile videoFile
+# Linux 示例  
+LOCAL_CHROME_PATH = "/usr/bin/google-chrome"
+
+# macOS 示例
+LOCAL_CHROME_PATH = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
 ```
 
-- `cookiesFile`: 存储 Cookie 文件
-- `videoFile`: 存储上传的视频文件
-
-### 6. 配置数据库
-
-如果 `db/database.db` 文件不存在，您可以运行以下命令来初始化数据库：
-
-```bash
-cd db
-python createTable.py
-cd ..
-```
-
-此命令将初始化 SQLite 数据库，创建必要的表结构。
-
-### 7. 启动后端服务
+6. **启动后端服务**
 
 ```bash
 cd sau_backend
@@ -248,17 +274,17 @@ python sau_backend.py
 
 后端服务将在 `http://localhost:5409` 启动。
 
-### 8. 启动前端项目
+7. **安装前端依赖并启动**
 
 ```bash
-cd sau_frontend
+cd ../sau_frontend
 npm install
 npm run dev
 ```
 
 前端项目将在 `http://localhost:5173` 启动，在浏览器中打开此链接即可访问。
 
-### 9. 快速启动（Windows）
+#### Windows 快速启动
 
 对于 Windows 用户，您可以使用项目根目录下的 `start-win.bat` 脚本快速启动前后端服务：
 
@@ -268,7 +294,60 @@ start-win.bat
 
 此脚本将自动激活虚拟环境（如果存在）并启动后端服务。
 
-## 快速开始
+## API 文档
+
+### 账号管理
+
+| 接口 | 方法 | 描述 | 参数 | 返回 |
+|------|------|------|------|------|
+| `/getAccounts` | GET | 获取所有账号信息 | 无 | 账号列表 |
+| `/getValidAccounts` | GET | 获取有效的账号信息 | 无 | 有效账号列表 |
+| `/account` | POST | 添加账号 | JSON 数据 | 操作结果 |
+| `/updateUserinfo` | POST | 更新账号信息 | JSON 数据 | 操作结果 |
+| `/deleteAccount` | GET | 删除账号 | `id`：账号 ID | 操作结果 |
+| `/downloadCookie` | GET | 下载 Cookie 文件 | `filePath`：文件路径 | Cookie 文件 |
+| `/uploadCookie` | POST | 上传 Cookie 文件 | 文件数据 | 操作结果 |
+
+### 文件管理
+
+| 接口 | 方法 | 描述 | 参数 | 返回 |
+|------|------|------|------|------|
+| `/upload` | POST | 上传文件 | 文件数据 | 文件唯一 ID |
+| `/getFiles` | GET | 获取文件列表 | 无 | 文件列表 |
+
+### 发布管理
+
+| 接口 | 方法 | 描述 | 参数 | 返回 |
+|------|------|------|------|------|
+| `/postVideo` | POST | 发布视频到单个平台 | JSON 数据 | 操作结果 |
+| `/postVideosToMultiplePlatforms` | POST | 发布视频到多个平台 | JSON 数据 | 操作结果 |
+| `/getPublishTaskRecords` | GET | 获取发布任务记录 | `page`：页码<br>`page_size`：每页记录数 | 任务记录列表 |
+| `/getPlatformStats` | GET | 获取平台统计数据 | 无 | 平台统计信息 |
+| `/cancelTask` | GET | 取消发布任务 | `id`：任务 ID | 操作结果 |
+| `/taskStatus` | GET | 获取发布任务状态 | `id`：任务 ID | 任务状态 |
+| `/platformConfig` | GET | 获取平台特定参数配置 | `type`：平台标识 | 平台配置 |
+
+### 登录接口
+
+| 接口 | 方法 | 描述 | 参数 | 返回 |
+|------|------|------|------|------|
+| `/login` | GET | 登录接口（SSE 连接） | `id`：用户名<br>`type`：平台标识 | 登录二维码 |
+
+## 平台标识对照表
+
+| 平台 | type字段值 | 平台标识 | 新版支持 | 旧版支持 |
+|------|-----------|---------|---------|---------|
+| 小红书 | 1 | xiaohongshu | ✅ | ✅ |
+| 腾讯视频号 | 2 | tencent | ✅ | ✅ |
+| 抖音 | 3 | douyin | ✅ | ✅ |
+| 快手 | 4 | kuaishou | ✅ | ✅ |
+| TikTok | 5 | tiktok | ✅ | ✅ |
+| Instagram | 6 | instagram | ✅ | ❌ |
+| Facebook | 7 | facebook | ✅ | ❌ |
+| B站 | 8 | bilibili | ✅ | ✅ |
+| 百家号 | 9 | baijiahao | ✅ | ✅ |
+
+## 快速开始使用
 
 ### 1. 登录系统
 
@@ -284,7 +363,7 @@ start-win.bat
 
 ### 3. 上传文件
 
-1. 点击左侧导航栏的「文件管理」
+1. 点击左侧导航栏的「素材管理」
 2. 点击「上传文件」按钮
 3. 选择要上传的视频或图片文件
 4. 等待上传完成
@@ -298,30 +377,76 @@ start-win.bat
 5. 设置发布时间（可选）
 6. 点击「发布」按钮，系统将自动执行发布任务
 
+### 5. 查看发布记录
 
-## API 文档
+1. 点击左侧导航栏的「任务发布记录」
+2. 查看所有发布任务的状态和详情
+3. 对失败的任务进行重试，对进行中的任务进行取消
 
-### 后端 API 接口
+## 部署方案
 
-#### 账号管理
+### 本地开发环境
 
-- `GET /getAccounts` - 获取所有账号信息
-- `GET /getValidAccounts` - 获取有效的账号信息（带 Cookie 验证）
-- `POST /account` - 添加账号
-- `POST /updateUserinfo` - 更新账号信息
-- `GET /deleteAccount?id={id}` - 删除账号
-- `GET /downloadCookie?filePath={filePath}` - 下载 Cookie 文件
-- `POST /uploadCookie` - 上传 Cookie 文件
+按照「安装指南」中的步骤部署到本地机器。
 
-#### 文件管理
+### Docker 部署
 
-- `POST /upload` - 上传文件
-- `GET /getFiles` - 获取文件列表
+1. 构建 Docker 镜像：
 
-#### 发布管理
+```bash
+docker build -t sau .
+```
 
-- `POST /postVideosToMultiplePlatforms` - 发布视频到多个平台
-- `GET /getPlatformStats` - 获取平台账号统计
+2. 运行 Docker 容器：
+
+```bash
+docker run -d -p 5409:5409 -p 5173:5173 --name sau sau
+```
+
+3. 访问应用：
+
+打开浏览器，访问 `http://localhost:5173`
+
+### 生产环境部署
+
+1. 构建前端项目：
+
+```bash
+cd sau_frontend
+npm run build
+```
+
+2. 配置后端服务：
+
+- 修改 `sau_backend/conf.py` 中的配置
+- 配置反向代理（如 Nginx）
+- 设置环境变量
+
+3. 启动服务：
+
+使用 Supervisor 或 Systemd 管理服务进程。
+
+4. Nginx 配置示例：
+
+```nginx
+server {
+    listen 80;
+    server_name your-domain.com;
+    
+    location / {
+        root /path/to/sau_frontend/dist;
+        index index.html;
+        try_files $uri $uri/ /index.html;
+    }
+    
+    location /api {
+        proxy_pass http://localhost:5409;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    }
+}
+```
 
 ## 技术实现细节
 
@@ -398,6 +523,10 @@ start-win.bat
 - 增加系统内存和 CPU 资源
 - 优化网络连接
 
+### 5. 如何切换上传版本？
+
+系统默认使用新版上传系统。如果需要使用旧版上传系统，您可以在代码中修改相关配置。
+
 ## 贡献指南
 
 我们欢迎社区贡献，包括但不限于：
@@ -421,49 +550,6 @@ start-win.bat
 - 遵循 ESLint 代码规范（JavaScript/TypeScript）
 - 为新功能添加测试用例
 - 确保代码通过所有测试
-
-## 部署方案
-
-### 本地开发环境
-
-按照「安装指南」中的步骤部署到本地机器。
-
-### Docker 部署
-
-1. 构建 Docker 镜像：
-
-```bash
-docker build -t sau .
-```
-
-2. 运行 Docker 容器：
-
-```bash
-docker run -d -p 5409:5409 -p 5173:5173 --name sau sau
-```
-
-3. 访问应用：
-
-打开浏览器，访问 `http://localhost:5173`
-
-### 生产环境部署
-
-1. 构建前端项目：
-
-```bash
-cd sau_frontend
-npm run build
-```
-
-2. 配置后端服务：
-
-- 修改 `sau_backend/conf.py` 中的配置
-- 配置反向代理（如 Nginx）
-- 设置环境变量
-
-3. 启动服务：
-
-使用 Supervisor 或 Systemd 管理服务进程。
 
 ## 许可证
 
@@ -493,14 +579,6 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-## 鸣谢
-
-- [Flask](https://flask.palletsprojects.com/) - Python Web 框架
-- [Playwright](https://playwright.dev/) - 现代浏览器自动化库
-- [Vue 3](https://vuejs.org/) - 渐进式 JavaScript 框架
-- [Element Plus](https://element-plus.org/) - 基于 Vue 3 的 UI 组件库
-- [SQLite](https://www.sqlite.org/) - 轻量级数据库
-
 ## 联系方式
 
 - **GitHub Issues**：[https://github.com/fan-0517/SAU/issues](https://github.com/fan-0517/SAU/issues)
@@ -517,6 +595,14 @@ SOFTWARE.
 - ✅ 提供完整的 Web 管理界面
 - ✅ 实现新版文件上传系统（通用基类 + 平台配置）
 - ✅ 保留旧版文件上传系统作为备用
+
+### v1.0.1 (2026-01-15)
+
+- 📚 完善项目文档，更新 README 结构和内容
+- 🔧 优化 API 接口文档，添加详细的参数说明
+- 🎨 改进前端界面，优化用户体验
+- ⚡ 优化后端性能，提高发布效率
+- 🔒 增强系统安全性，完善错误处理
 
 ---
 
