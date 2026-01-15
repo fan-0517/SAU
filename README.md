@@ -1,8 +1,7 @@
-# 自媒体智能运营系统 (SAU)
+# 自媒体发布平台 (MPP - MediaPublishPlatform)
 
 <div align="center">
-  <img src="https://via.placeholder.com/200x100?text=SAU+Logo" alt="SAU Logo" width="200" height="100">
-  <h3>🚀 多平台自媒体智能运营系统</h3>
+  <h3>🚀 多平台自媒体发布平台</h3>
   <p>支持图文和视频内容的批量上传与定时发布，实现多平台自动化运营</p>
   
   <p>
@@ -20,20 +19,31 @@
 
 ## 项目地址
 
-[GitHub 仓库](https://github.com/fan-0517/SAU.git)
+[GitHub 仓库](https://github.com/fan-0517/MediaPublishPlatform.git)
 
 ## 项目介绍
 
-SAU (Social Auto Upload) 是一个功能强大的自媒体智能运营系统，支持图文和视频内容的批量上传与定时发布，帮助内容创作者实现多平台自动化运营。
+MPP (MediaPublishPlatform) 是一个功能强大的自媒体发布平台，支持图文和视频内容的批量上传与定时发布，帮助内容创作者实现多平台自动化运营。
+
+> **项目起源**：本项目是基于 [dreammis/social-auto-upload](https://github.com/dreammis/social-auto-upload) 进行二次开发的项目，在原项目基础上进行了以下增强：
+> - 新增平台支持：扩展了 TikTok、Instagram、Facebook、B站、百家号等平台
+> - 实现一键发布功能：支持一键发布多个媒体文件到多个平台
+> - 增加发布记录查询：支持查看完整的发布记录，包括发布状态、时间和结果
+> - 实现了新版通用基类架构的文件上传系统
+> - 完善了前端界面，优化了用户体验
+> - 优化了代码结构和文档
+> - 提高扩展性：新增平台支持只需修改 `platform_configs.py` 配置文件即可
 
 ### 主要特点
 
-- **多平台支持**：覆盖主流自媒体平台，包括小红书、腾讯视频号、抖音、快手、TikTok、Instagram等
+- **多平台支持**：覆盖主流自媒体平台，包括小红书、腾讯视频号、抖音、快手、TikTok、Instagram、Facebook、B站、百家号等
+- **一键发布**：支持一键发布多个媒体文件到多个平台，提高发布效率
 - **自动化发布**：基于 Playwright 的浏览器自动化技术，实现无人值守发布
 - **批量操作**：支持多文件批量上传和多账号轮换发布
 - **定时发布**：灵活的定时发布功能，支持自定义发布时间和发布频率
+- **发布记录**：支持查看完整的发布记录，包括发布状态、时间和结果
 - **统一管理**：提供统一的Web界面，集中管理所有发布任务
-- **易于扩展**：模块化设计，便于添加新平台支持
+- **易于扩展**：模块化设计，新增平台支持只需修改 `platform_configs.py` 配置文件即可
 - **双版本上传系统**：新版通用基类架构 + 旧版平台独立实现，确保系统稳定性
 
 ## 项目架构
@@ -215,7 +225,7 @@ sau/
 1. **克隆项目**
 
 ```bash
-git clone https://github.com/fan-0517/SAU.git
+git clone https://github.com/fan-0517/MediaPublishPlatform.git
 cd SAU
 ```
 
@@ -320,8 +330,8 @@ start-win.bat
 | 接口 | 方法 | 描述 | 参数 | 返回 |
 |------|------|------|------|------|
 | `/postVideo` | POST | 发布视频到单个平台 | JSON 数据 | 操作结果 |
-| `/postVideosToMultiplePlatforms` | POST | 发布视频到多个平台 | JSON 数据 | 操作结果 |
-| `/getPublishTaskRecords` | GET | 获取发布任务记录 | `page`：页码<br>`page_size`：每页记录数 | 任务记录列表 |
+| `/postVideosToMultiplePlatforms` | POST | **一键发布**：发布多个视频到多个平台 | JSON 数据 | 操作结果 |
+| `/getPublishTaskRecords` | GET | **发布记录**：获取发布任务记录 | `page`：页码<br>`page_size`：每页记录数 | 任务记录列表 |
 | `/getPlatformStats` | GET | 获取平台统计数据 | 无 | 平台统计信息 |
 | `/cancelTask` | GET | 取消发布任务 | `id`：任务 ID | 操作结果 |
 | `/taskStatus` | GET | 获取发布任务状态 | `id`：任务 ID | 任务状态 |
@@ -400,7 +410,7 @@ docker build -t sau .
 2. 运行 Docker 容器：
 
 ```bash
-docker run -d -p 5409:5409 -p 5173:5173 --name sau sau
+docker run -d -p 5409:5409 -p 5173:5173 --name mpp mpp
 ```
 
 3. 访问应用：
@@ -504,11 +514,45 @@ server {
 
 ### 3. 如何添加新平台支持？
 
-要添加新平台支持，您需要：
+MPP 系统采用模块化设计，新增平台支持非常简单，只需修改 `sau_backend/newFileUpload/platform_configs.py` 文件即可：
 
-1. 在 `sau_backend/newFileUpload/platform_configs.py` 中添加平台配置
-2. 在 `sau_backend/myUtils/login.py` 中添加登录逻辑
-3. 在 `sau_backend/myUtils/auth.py` 中添加 Cookie 验证逻辑
+1. 在 `PLATFORM_CONFIGS` 字典中添加新平台的配置信息
+2. 配置项包括：平台类型编号、名称、URL、选择器和功能支持
+3. 无需修改登录逻辑和 Cookie 验证逻辑
+4. 系统会自动识别新平台并支持发布功能
+
+**配置示例**：
+```python
+"new_platform": {
+    "type": 10,
+    "platform_name": "new_platform",
+    "personal_url": "https://example.com/",
+    "login_url": "https://example.com/login",
+    "creator_video_url": "https://example.com/upload/video",
+    "creator_image_url": "https://example.com/upload/image",
+    "selectors": {
+        "upload_button": ['button:has-text("上传")'],
+        "publish_button": ['button:has-text("发布")'],
+        "title_editor": ['input[placeholder="标题"]'],
+        "textbox_selectors": ['div[contenteditable="true"]'],
+        "thumbnail_button": ['button:has-text("封面")'],
+        "thumbnail_finish": ['button:has-text("完成")'],
+        "schedule_button": ['button:has-text("定时")'],
+        "date_input": ['input[type="date"]'],
+        "time_input": ['input[type="time"]'],
+    },
+    "features": {
+        "skip_cookie_verify": True,
+        "image_publish": True,
+        "title": True,
+        "textbox": True,
+        "tags": True,
+        "thumbnail": True,
+        "location": False,
+        "schedule": True
+    }
+}
+```
 
 ### 4. 系统运行缓慢怎么办？
 
@@ -581,14 +625,14 @@ SOFTWARE.
 
 ## 联系方式
 
-- **GitHub Issues**：[https://github.com/fan-0517/SAU/issues](https://github.com/fan-0517/SAU/issues)
+- **GitHub Issues**：[https://github.com/fan-0517/MPP/issues](https://github.com/fan-0517/MPP/issues)
 - **Email**：1424393744@qq.com
 
 ## 更新日志
 
 ### v1.0.0 (2026-01-13)
 
-- ✨ 初始版本发布
+- ✨ 初始版本发布，基于 SAU 项目
 - ✅ 支持小红书、腾讯视频号、抖音、快手、TikTok、Instagram 平台
 - ✅ 实现视频和图文发布功能
 - ✅ 支持定时发布和批量发布
@@ -604,8 +648,15 @@ SOFTWARE.
 - ⚡ 优化后端性能，提高发布效率
 - 🔒 增强系统安全性，完善错误处理
 
+### v1.0.2 (2026-01-15)
+
+- 🔄 项目重命名为 MPP (MediaPublishPlatform)
+- 📝 更新项目文档和引用
+- ✅ 完善 B站和百家号平台支持
+- ✅ 增强发布任务记录查询功能
+
 ---
 
-**感谢使用 SAU 自媒体智能运营系统！** 🚀
+**感谢使用 MPP 自媒体发布平台！** 🚀
 
 如果您觉得这个项目对您有帮助，请给我们一个 ⭐️ 支持一下！

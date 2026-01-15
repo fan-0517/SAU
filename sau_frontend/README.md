@@ -1,8 +1,8 @@
-# SAU 前端项目文档
+# MPP 前端项目文档
 
 ## 项目概述
 
-SAU (Social Auto Upload) 前端是一个基于 Vue 3 + Element Plus 构建的自媒体智能运营系统前端界面，提供直观易用的用户界面，用于管理和发布自媒体内容到多个平台。
+MPP (MediaPublishPlatform) 前端是一个基于 Vue 3 + Element Plus 构建的自媒体发布平台前端界面，提供直观易用的用户界面，用于管理和发布自媒体内容到多个平台。
 
 ## 🚀 特性
 
