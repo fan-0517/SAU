@@ -14,7 +14,12 @@ export const publishApi = {
 
   // 取消发布任务
   cancelPublishTask(taskId) {
-    return http.get(`/cancelTask?id=${taskId}`)
+    return http.post('/cancelPublishTask', { id: taskId })
+  },
+
+  // 删除发布任务记录
+  deletePublishTask(taskId) {
+    return http.post('/deletePublishTask', { id: taskId })
   },
 
   // 获取发布任务状态

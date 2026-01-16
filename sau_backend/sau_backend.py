@@ -833,6 +833,57 @@ def cancel_publish_task():
             "data": None
         }), 500
 
+# 删除发布任务记录
+@app.route('/deletePublishTask', methods=['POST'])
+def delete_publish_task():
+    try:
+        data = request.get_json()
+        id = data.get('id')
+        
+        if not id:
+            return jsonify({
+                "code": 400,
+                "msg": "缺少必要参数",
+                "data": None
+            }), 400
+        
+        with sqlite3.connect(Path(BASE_DIR / "db" / "database.db")) as conn:
+            conn.row_factory = sqlite3.Row
+            cursor = conn.cursor()
+            
+            # 检查任务是否存在
+            cursor.execute('''
+                SELECT * FROM publish_task_records WHERE id = ?
+            ''', [id])
+            record = cursor.fetchone()
+            
+            if not record:
+                return jsonify({
+                    "code": 404,
+                    "msg": "发布任务记录不存在",
+                    "data": None
+                }), 404
+            
+            # 删除任务记录
+            cursor.execute('''
+                DELETE FROM publish_task_records WHERE id = ?
+            ''', [id])
+            
+            conn.commit()
+            
+            return jsonify({
+                "code": 200,
+                "msg": "发布任务记录删除成功",
+                "data": None
+            }), 200
+    except Exception as e:
+        print(f"删除发布任务记录失败: {str(e)}")
+        return jsonify({
+            "code": 500,
+            "msg": f"删除发布任务记录失败: {str(e)}",
+            "data": None
+        }), 500
+
 # # 将单个视频发布到指定平台（原版）
 # @app.route('/postVideo1', methods=['POST'])
 # def postVideo1():

@@ -87,7 +87,7 @@
         </el-table-column>
         <el-table-column prop="createTime" label="创建时间" width="180" />
         <el-table-column prop="updateTime" label="更新时间" width="180" />
-        <el-table-column label="操作" width="200">
+        <el-table-column label="操作" width="350">
           <template #default="scope">
             <el-button size="small" @click="viewTaskDetail(scope.row)">查看详情</el-button>
             <el-button 
@@ -105,6 +105,13 @@
               @click="cancelPublishTask(scope.row)"
             >
               取消
+            </el-button>
+            <el-button 
+              size="small" 
+              type="warning" 
+              @click="deletePublishTask(scope.row)"
+            >
+              删除
             </el-button>
           </template>
         </el-table-column>
@@ -306,17 +313,78 @@ const cancelPublishTask = (task) => {
       type: 'warning',
     }
   )
-    .then(() => {
-      // 更新任务状态
-      const index = publishTaskRecords.value.findIndex(t => t.id === task.id)
-      if (index !== -1) {
-        publishTaskRecords.value[index].status = '已取消'
-        publishTaskRecords.value[index].updateTime = new Date().toLocaleString()
+    .then(async () => {
+      try {
+        // 调用后端API取消任务
+        const response = await publishApi.cancelPublishTask(task.id)
+        if (response.code === 200) {
+          // 更新本地任务状态
+          const index = publishTaskRecords.value.findIndex(t => t.id === task.id)
+          if (index !== -1) {
+            publishTaskRecords.value[index].status = '已取消'
+            publishTaskRecords.value[index].updateTime = new Date().toLocaleString()
+          }
+          ElMessage({
+            type: 'success',
+            message: '发布任务已取消',
+          })
+        } else {
+          ElMessage({
+            type: 'error',
+            message: response.msg || '取消任务失败',
+          })
+        }
+      } catch (error) {
+        console.error('取消任务失败:', error)
+        ElMessage({
+          type: 'error',
+          message: '取消任务失败',
+        })
       }
-      ElMessage({
-        type: 'success',
-        message: '发布任务已取消',
-      })
+    })
+    .catch(() => {
+      // 取消操作
+    })
+}
+
+// 删除发布任务记录
+const deletePublishTask = (task) => {
+  ElMessageBox.confirm(
+    `确定要删除这条发布任务记录吗？`,
+    '警告',
+    {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning',
+    }
+  )
+    .then(async () => {
+      try {
+        // 调用后端API删除任务
+        const response = await publishApi.deletePublishTask(task.id)
+        if (response.code === 200) {
+          // 从本地列表中移除删除的任务
+          const index = publishTaskRecords.value.findIndex(t => t.id === task.id)
+          if (index !== -1) {
+            publishTaskRecords.value.splice(index, 1)
+          }
+          ElMessage({
+            type: 'success',
+            message: '发布任务记录已删除',
+          })
+        } else {
+          ElMessage({
+            type: 'error',
+            message: response.msg || '删除任务记录失败',
+          })
+        }
+      } catch (error) {
+        console.error('删除任务记录失败:', error)
+        ElMessage({
+          type: 'error',
+          message: '删除任务记录失败',
+        })
+      }
     })
     .catch(() => {
       // 取消操作
@@ -373,6 +441,15 @@ onMounted(() => {
     .pagination {
       margin-top: 20px;
       text-align: right;
+    }
+    
+    // 确保操作按钮在同一行显示
+    .el-button {
+      margin-right: 8px;
+    }
+    
+    .el-table__cell {
+      white-space: nowrap;
     }
   }
 }
