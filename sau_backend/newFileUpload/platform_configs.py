@@ -209,7 +209,7 @@ PLATFORM_CONFIGS = {
         "features": {
             # 平台功能支持
             #是否跳过Cookie验证
-            "skip_cookie_verify": False,
+            "skip_cookie_verify": True,
             #是否支持图文发布
             "image_publish": False,
             #是否支持标题
