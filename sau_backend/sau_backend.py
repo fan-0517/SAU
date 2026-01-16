@@ -314,8 +314,8 @@ async def getValidAccounts():
                 print(f"✅ 已批量更新 {total_updated} 个账号的状态，其中 {len(valid_accounts)} 个正常，{len(invalid_accounts)} 个失效")
             else:
                 print("✅ 所有账号状态均无需更新")
-            for row in rows:
-                print(row)
+            #for row in rows:
+            #    print(row)
             return jsonify(
                             {
                                 "code": 200,
