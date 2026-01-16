@@ -3,12 +3,11 @@ import configparser
 import os
 
 from playwright.async_api import async_playwright
-from conf import BASE_DIR, LOCAL_CHROME_HEADLESS
+from conf import BASE_DIR
 from utils.base_social_media import set_init_script
 from utils.log import create_logger
 from pathlib import Path
-import sys
-import os
+from newFileUpload.platform_configs import PLATFORM_CONFIGS
 
 async def check_cookie_generic(type, file_path):
     """
@@ -19,11 +18,6 @@ async def check_cookie_generic(type, file_path):
     Returns:
         bool: Cookie是否有效
     """
-    # 添加项目根目录到Python路径
-    sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
-    # 从正确的路径导入platform_configs
-    from newFileUpload.platform_configs import PLATFORM_CONFIGS
-
     # 根据类型获取平台配置
     platform_config = None
     for config in PLATFORM_CONFIGS.values():
@@ -37,7 +31,7 @@ async def check_cookie_generic(type, file_path):
     platform_name = platform_config.get("platform_name", "unknown")
     personal_url = platform_config.get("personal_url", "")
     logger = create_logger (platform_name, f'logs/{platform_name}.log')
-    logger.info(f"开始检测平台 {platform_name} 的账号有效性")
+    #logger.info(f"开始检测平台 {platform_name} 的账号有效性")
     if not personal_url:
         logger.error(f"平台 {platform_name} 未配置 personal_url")
         return False
@@ -45,7 +39,7 @@ async def check_cookie_generic(type, file_path):
     # 使用Playwright检测账号有效性
     try:
         async with async_playwright() as playwright:
-            browser = await playwright.chromium.launch(headless=False)
+            browser = await playwright.chromium.launch(headless=True)
             context = await browser.new_context(storage_state=Path(BASE_DIR / "cookiesFile" / file_path))
             context = await set_init_script(context)
 
@@ -58,7 +52,7 @@ async def check_cookie_generic(type, file_path):
 
             # 检查是否跳转到登录页面
             current_url = page.url
-            logger.info(f"[+]Current URL: {current_url}")
+            #logger.info(f"[+]Current URL: {current_url}")
 
             # 1.检查url是否包含登录相关的关键词
             login_keywords = ["login", "signin", "auth", "登录", "登录页", "登录页面"]
