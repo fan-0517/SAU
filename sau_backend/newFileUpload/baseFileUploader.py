@@ -6,12 +6,13 @@ import os
 import asyncio
 from datetime import datetime
 from playwright.async_api import Playwright, async_playwright
-from conf import LOCAL_CHROME_PATH, LOCAL_CHROME_HEADLESS
+from conf import LOCAL_CHROME_PATH, LOCAL_CHROME_HEADLESS, BASE_DIR
 from utils.base_social_media import set_init_script
 from utils.files_times import get_absolute_path
 from utils.log import create_logger
 # 从platform_configs.py导入平台配置字典
-from .platform_configs import PLATFORM_CONFIGS
+from .platform_configs import PLATFORM_CONFIGS, get_type_by_platform_key
+from myUtils.auth import check_cookie_generic
 
 
 class BaseFileUploader(object):
@@ -655,44 +656,29 @@ class BaseFileUploader(object):
         """
         验证平台的cookie是否有效
         """
-        async with async_playwright() as playwright:
-            # 设置本地Chrome浏览器路径
-            browser = await playwright.chromium.launch(headless=self.headless, executable_path=self.local_executable_path)
-            context = await browser.new_context(storage_state=self.account_file)
-            context = await set_init_script(context)
-            # 创建一个新的页面
-            page = await context.new_page()
-            # 访问平台个人中心页面url验证cookie，明确指定等待domcontentloaded状态
-            await page.goto(self.personal_url, wait_until='domcontentloaded', timeout=self.page_load_timeout)
-            self.logger.info("平台个人中心页面DOM加载完成")
-            
-            try:
-                #douyin平台判断方式比较特殊
-                if self.platform_name == "douyin":
-                    # 检查是否登录成功
-                    if await page.get_by_text('登录/注册').count() or await page.get_by_text('扫码登录').count() or await page.get_by_placeholder('请输入手机号').count() or await page.locator('input[name="normal-input"]').count():
-                        print("Cookie已过期")
-                        return False
-                    else:
-                        print("cookie有效")
-                        return True
-                else:
-                    #其他平台采用通用模式
-                    # 检查是否登录成功（如果成功跳转到个人中心页面的url）
-                    current_url = page.url
-                    self.logger.info(f"当前页面URL: {current_url}")
-                    if self.personal_url in current_url:
-                        self.logger.info("Cookie有效")
-                        return True
-                    else:
-                        self.logger.error("Cookie已过期")
-                        return False
-
-            except Exception as e:
-                self.logger.error(f"Cookie验证失败: {str(e)}")
+        try:
+            # 获取平台类型编号
+            platform_type = get_type_by_platform_key(self.platform)
+            if not platform_type:
+                self.logger.error(f"平台 {self.platform} 类型未找到")
                 return False
-            finally:
-                await browser.close()
+            
+            # 提取cookie文件路径（相对路径）
+            # 假设self.account_file是完整路径，需要提取相对于cookiesFile目录的部分
+            cookie_file_path = os.path.relpath(self.account_file, os.path.join(BASE_DIR, "cookiesFile"))
+            
+            # 调用通用的Cookie验证方法
+            is_valid = await check_cookie_generic(platform_type, cookie_file_path)
+            
+            if is_valid:
+                self.logger.info("Cookie有效")
+            else:
+                self.logger.error("Cookie已过期")
+            
+            return is_valid
+        except Exception as e:
+            self.logger.error(f"Cookie验证失败: {str(e)}")
+            return False
 
 
     async def get_platform_cookie(self, account_file, executable_path, timeout, login_url, login_wait_timeout, browser_lang):
