@@ -338,15 +338,6 @@ class BaseFileUploader(object):
                     await asyncio.sleep(2)
             except Exception as e:
                 self.logger.error(f"[+]点击Instagram登录按钮失败: {str(e)}")
-        else:
-            # 如果不是登录页面，直接点击上传按钮
-            upload_button = page.locator(self.selectors["upload_button"][0])
-            if await upload_button.count() > 0:
-                await upload_button.wait_for(state='visible', timeout=5000)
-                await upload_button.click()
-                await asyncio.sleep(2)
-            else:
-                self.logger.error("未找到上传按钮")
 
     async def find_button(self, selector_list):
         """

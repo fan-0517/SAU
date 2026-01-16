@@ -5,11 +5,11 @@
   <p>支持图文和视频内容的批量上传与定时发布，实现多平台自动化运营</p>
   
   <p>
-    <a href="https://github.com/fan-0517/SAU.git" target="_blank">
-      <img src="https://img.shields.io/github/stars/fan-0517/SAU?style=social" alt="GitHub stars">
+    <a href="https://github.com/fan-0517/MediaPublishPlatform.git" target="_blank">
+      <img src="https://img.shields.io/github/stars/fan-0517/MediaPublishPlatform?style=social" alt="GitHub stars">
     </a>
-    <a href="https://github.com/fan-0517/SAU.git" target="_blank">
-      <img src="https://img.shields.io/github/forks/fan-0517/SAU?style=social" alt="GitHub forks">
+    <a href="https://github.com/fan-0517/MediaPublishPlatform.git" target="_blank">
+      <img src="https://img.shields.io/github/forks/fan-0517/MediaPublishPlatform?style=social" alt="GitHub forks">
     </a>
     <img src="https://img.shields.io/badge/license-MIT-green" alt="MIT License">
     <img src="https://img.shields.io/badge/python-3.10-blue" alt="Python 3.10">
