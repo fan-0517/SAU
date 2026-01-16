@@ -1740,5 +1740,82 @@ def sse_stream(status_queue):
             # 避免 CPU 占满
             time.sleep(0.1)
 
+# 重新登录API
+@app.route('/reLogin', methods=['GET'])
+async def reLogin():
+    try:
+        # 获取账号ID
+        account_id = request.args.get('id')
+        if not account_id:
+            return jsonify({
+                "code": 400,
+                "msg": "缺少账号ID参数",
+                "data": None
+            }), 400
+
+        # 从数据库获取账号信息
+        with sqlite3.connect(Path(BASE_DIR / "db" / "database.db")) as conn:
+            conn.row_factory = sqlite3.Row
+            cursor = conn.cursor()
+            cursor.execute('SELECT filePath, type, userName FROM user_info WHERE id = ?', (account_id,))
+            result = cursor.fetchone()
+
+        if not result:
+            return jsonify({
+                "code": 404,
+                "msg": "账号不存在",
+                "data": None
+            }), 404
+
+        file_path = result['filePath']
+        platform_type = result['type']
+        user_name = result['userName']
+
+        # 调用对应平台的cookie生成函数
+        match platform_type:
+            case 1:  # 小红书
+                await xiaohongshu_cookie_gen(LOCAL_CHROME_PATH, file_path)
+            case 2:  # 视频号
+                await get_tencent_cookie(LOCAL_CHROME_PATH, file_path)
+            case 3:  # 抖音
+                await douyin_cookie_gen(LOCAL_CHROME_PATH, file_path)
+            case 4:  # 快手
+                await get_ks_cookie(LOCAL_CHROME_PATH, file_path)
+            case 5:  # TikTok
+                await get_tiktok_cookie(LOCAL_CHROME_PATH, file_path)
+            case 6:  # Instagram
+                await get_instagram_cookie(LOCAL_CHROME_PATH, file_path)
+            case 7:  # Facebook
+                await get_facebook_cookie(LOCAL_CHROME_PATH, file_path)
+            case 8:  # Bilibili
+                await get_bilibili_cookie(LOCAL_CHROME_PATH, file_path)
+            case 9:  # Baijiahao
+                await get_baijiahao_cookie(LOCAL_CHROME_PATH, file_path)
+            case _:
+                return jsonify({
+                    "code": 400,
+                    "msg": "不支持的平台类型",
+                    "data": None
+                }), 400
+
+        # 更新数据库中的账号状态为正常
+        with sqlite3.connect(Path(BASE_DIR / "db" / "database.db")) as conn:
+            cursor = conn.cursor()
+            cursor.execute('UPDATE user_info SET status = 1 WHERE id = ?', (account_id,))
+            conn.commit()
+
+        return jsonify({
+            "code": 200,
+            "msg": f"账号 {user_name} 重新登录成功",
+            "data": None
+        }), 200
+    except Exception as e:
+        print(f"重新登录失败: {str(e)}")
+        return jsonify({
+            "code": 500,
+            "msg": f"重新登录失败: {str(e)}",
+            "data": None
+        }), 500
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0' ,port=5409)
