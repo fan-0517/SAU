@@ -597,10 +597,10 @@ class BaseFileUploader(object):
                         # 等待版权检查弹窗出现
                         try:
                             await page.wait_for_selector('button.TUXButton.TUXButton--primary div.TUXButton-label:has-text("Post now")', timeout=5000)
-                            self.logger.info("  [-]检测到版权检查弹窗，准备点击Post now按钮")                       
+                            self.logger.info("  [-]检测到版权检查弹窗，准备点击Post now按钮")
                             # 使用更精确的选择器点击Post now按钮
                             await self.locator_base.locator('button.TUXButton.TUXButton--primary div.TUXButton-label >> text=Post now').click()
-                            self.logger.info("  [-]已点击Post now按钮")                     
+                            self.logger.info("  [-]已点击Post now按钮")
                             # 等待操作完成
                             await page.wait_for_timeout(2000)
                         except Exception as e:
@@ -611,7 +611,7 @@ class BaseFileUploader(object):
                 self.logger.info("等待发布完成...")
                 current_url = page.url
                 self.logger.info(f"当前url: {current_url}")
-                #ks平台、等待发布完成：如果当前url已不在发布页面，说明发布成功
+                #ks平台、视频号平台等待发布完成的逻辑：如果当前url已不在发布页面，说明发布成功
                 if self.file_type == 1:
                     target_url = self.creator_image_url
                 else:

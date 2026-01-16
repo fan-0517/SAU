@@ -88,7 +88,7 @@ PLATFORM_CONFIGS = {
             #是否支持图文发布
             "image_publish": True,
             #是否支持标题
-            "title": True,
+            "title": False,
             #是否支持正文
             "textbox": True,
             #是否支持标签

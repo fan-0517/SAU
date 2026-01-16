@@ -156,7 +156,7 @@ const platformNameMap = {
   'douyin': '抖音',
   'kuaishou': '快手',
   'xiaohongshu': '小红书',
-  'weixin': '视频号',
+  'tencent': '视频号',
   'tiktok': 'TikTok',
   'instagram': 'Instagram',
   'facebook': 'Facebook',
