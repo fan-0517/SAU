@@ -10,7 +10,7 @@ from flask_cors import CORS
 from conf import BASE_DIR, LOCAL_CHROME_PATH
 from myUtils.auth import check_cookie
 from flask import Flask, request, jsonify, Response, send_from_directory
-from myUtils.login import douyin_cookie_gen, get_tencent_cookie, get_ks_cookie, xiaohongshu_cookie_gen, get_tiktok_cookie, get_instagram_cookie, get_facebook_cookie, get_bilibili_cookie, get_baijiahao_cookie
+from myUtils.login import douyin_cookie_gen, get_tencent_cookie, get_ks_cookie, xiaohongshu_cookie_gen, get_tiktok_cookie, get_instagram_cookie, get_facebook_cookie, get_bilibili_cookie, get_baijiahao_cookie, delete_account
 from newFileUpload.multiFileUploader import post_file, post_multiple_files_to_multiple_platforms, post_single_file_to_multiple_platforms
 from newFileUpload.platform_configs import get_platform_key_by_type, get_type_by_platform_key, PLATFORM_CONFIGS
 
@@ -394,51 +394,19 @@ def delete_file():
         }), 500
 
 @app.route('/deleteAccount', methods=['GET'])
-def delete_account():
+def delete_account_route():
     account_id = int(request.args.get('id'))
 
-    try:
-        # 获取数据库连接
-        with sqlite3.connect(Path(BASE_DIR / "db" / "database.db")) as conn:
-            conn.row_factory = sqlite3.Row
-            cursor = conn.cursor()
+    # 调用myUtils.login模块中的delete_account函数
+    result = delete_account(account_id)
 
-            # 查询要删除的记录
-            cursor.execute("SELECT * FROM user_info WHERE id = ?", (account_id,))
-            record = cursor.fetchone()
-
-            if not record:
-                return jsonify({
-                    "code": 404,
-                    "msg": "account not found",
-                    "data": None
-                }), 404
-
-            record = dict(record)
-            file_path = record['filePath']
-
-            # 删除数据库记录
-            cursor.execute("DELETE FROM user_info WHERE id = ?", (account_id,))
-            conn.commit()
-
-        # 删除对应的cookies文件
-        cookies_file = Path(BASE_DIR / "cookiesFile" / file_path)
-        if cookies_file.exists():
-            cookies_file.unlink()
-            print(f"✅ 成功删除cookies文件: {cookies_file}")
-
-        return jsonify({
-            "code": 200,
-            "msg": "account deleted successfully",
-            "data": None
-        }), 200
-
-    except Exception as e:
-        return jsonify({
-            "code": 500,
-            "msg": str("delete failed!"),
-            "data": None
-        }), 500
+    # 根据结果返回响应
+    if result['code'] == 200:
+        return jsonify(result), 200
+    elif result['code'] == 404:
+        return jsonify(result), 404
+    else:
+        return jsonify(result), 500
 
 # 统计数据API：获取平台账号统计
 @app.route('/getPlatformStats', methods=['GET'])
@@ -543,10 +511,20 @@ def get_file_stats():
 # SSE 登录接口
 @app.route('/login')
 def login():
-    # 1 小红书 2 视频号 3 抖音 4 快手
     type = request.args.get('type')
     # 账号名
     id = request.args.get('id')
+    #如果账号名已存在，查找原有账户的id，并删除原有记录
+    with sqlite3.connect(Path(BASE_DIR / "db" / "database.db")) as conn:
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+        cursor.execute('SELECT id FROM user_info WHERE userName = ? AND type = ?', (id, type))
+        row = cursor.fetchone()
+        if row:
+            account_id = row['id']
+            # 删除数据库中的原账号
+            print(f"删除原账号ID: {account_id}")
+            delete_account(account_id)
 
     # 模拟一个用于异步通信的队列
     status_queue = Queue()

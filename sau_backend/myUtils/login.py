@@ -636,3 +636,57 @@ async def get_baijiahao_cookie(id, status_queue):
 
 # a = asyncio.run(xiaohongshu_cookie_gen(4,None))
 # print(a)
+
+# 删除账号
+import sqlite3
+from pathlib import Path
+from conf import BASE_DIR
+
+def delete_account(account_id):
+    """
+    删除账号
+    :param account_id: 账号ID
+    :return: 字典，包含删除结果
+    """
+    try:
+        # 获取数据库连接
+        with sqlite3.connect(Path(BASE_DIR / "db" / "database.db")) as conn:
+            conn.row_factory = sqlite3.Row
+            cursor = conn.cursor()
+
+            # 查询要删除的记录
+            cursor.execute("SELECT * FROM user_info WHERE id = ?", (account_id,))
+            record = cursor.fetchone()
+
+            if not record:
+                return {
+                    "code": 404,
+                    "msg": "account not found",
+                    "data": None
+                }
+
+            record = dict(record)
+            file_path = record['filePath']
+
+            # 删除数据库记录
+            cursor.execute("DELETE FROM user_info WHERE id = ?", (account_id,))
+            conn.commit()
+
+        # 删除对应的cookies文件
+        cookies_file = Path(BASE_DIR / "cookiesFile" / file_path)
+        if cookies_file.exists():
+            cookies_file.unlink()
+            print(f"✅ 成功删除cookies文件: {cookies_file}")
+
+        return {
+            "code": 200,
+            "msg": "account deleted successfully",
+            "data": None
+        }
+
+    except Exception as e:
+        return {
+            "code": 500,
+            "msg": "delete failed!",
+            "data": None
+        }
