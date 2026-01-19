@@ -5,11 +5,11 @@
   <p>支持图文和视频内容的批量上传与定时发布，实现多平台自动化运营</p>
   
   <p>
-    <a href="https://github.com/fan-0517/MediaPublishPlatform.git" target="_blank">
-      <img src="https://img.shields.io/github/stars/fan-0517/MediaPublishPlatform?style=social" alt="GitHub stars">
+    <a href="https://github.com/funfan0517/MediaPublishPlatform.git" target="_blank">
+      <img src="https://img.shields.io/github/stars/funfan0517/MediaPublishPlatform?style=social" alt="GitHub stars">
     </a>
-    <a href="https://github.com/fan-0517/MediaPublishPlatform.git" target="_blank">
-      <img src="https://img.shields.io/github/forks/fan-0517/MediaPublishPlatform?style=social" alt="GitHub forks">
+    <a href="https://github.com/funfan0517/MediaPublishPlatform.git" target="_blank">
+      <img src="https://img.shields.io/github/forks/funfan0517/MediaPublishPlatform?style=social" alt="GitHub forks">
     </a>
     <img src="https://img.shields.io/badge/license-MIT-green" alt="MIT License">
     <img src="https://img.shields.io/badge/python-3.10-blue" alt="Python 3.10">
@@ -19,11 +19,11 @@
 
 ## 项目地址
 
-[GitHub 仓库](https://github.com/fan-0517/MediaPublishPlatform.git)
+[GitHub 仓库](https://github.com/funfan0517/MediaPublishPlatform.git)
 
 ## 项目介绍
 
-MPP (MediaPublishPlatform) 是一个功能强大的自媒体发布平台，支持图文和视频内容的批量上传与定时发布，帮助内容创作者实现多平台自动化运营。
+MPP (MediaPublishPlatform) 是一个功能强大的自媒体发布平台，支持多个平台的图文和视频内容的批量上传与定时发布，帮助内容创作者实现多平台自动化运营。
 
 > **项目起源**：本项目是基于 [dreammis/social-auto-upload](https://github.com/dreammis/social-auto-upload) 进行二次开发的项目，在原项目基础上进行了以下增强：
 > - 新增平台支持：扩展了 TikTok、Instagram、Facebook、B站、百家号等平台
@@ -136,7 +136,7 @@ MPP (MediaPublishPlatform) 是一个功能强大的自媒体发布平台，支�
 1. **克隆项目**
 
 ```bash
-git clone https://github.com/fan-0517/MediaPublishPlatform.git
+git clone https://github.com/funfan0517/MediaPublishPlatform.git
 cd SAU
 ```
 
@@ -690,7 +690,7 @@ SOFTWARE.
 ```
 
 ## 交流与支持
-- **GitHub Issues**：[https://github.com/fan-0517/MPP/issues](https://github.com/fan-0517/MPP/issues)
+- **GitHub Issues**：[https://github.com/funfan0517/MediaPublishPlatform/issues](https://github.com/funfan0517/MediaPublishPlatform/issues)
 - **Email**：1424393744@qq.com
 
 ## Star-History
