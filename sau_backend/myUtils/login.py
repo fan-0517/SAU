@@ -83,29 +83,50 @@ async def unified_login_cookie_gen(type, id, status_queue):
             await page.goto(platform_config["login_url"], wait_until='domcontentloaded', timeout=60000)
 
             # 等待用户登录完成
-            status_queue.put(f'{{"code": 200, "msg": "请在浏览器中登录{platform_config["platform_name"]}账号", "data": null}}')
+            print(f"请在浏览器中登录{platform_config['platform_name']}账号")
 
             # 等待登录完成（检测cookie是否包含登录信息或URL是否变化）
             login_wait_timeout = 300000  # 5分钟登录超时
-            start_time = time.time()
             
             # 获取初始URL，用于后续比较
             initial_url = page.url
-            print(f"初始URL: {initial_url}")
             
             # 标记是否检测到登录成功
             login_successful = False
-
-            while time.time() - start_time < login_wait_timeout:
-                # 检查是否已登录（通过检查URL是否包含登录后的特征或cookie是否包含登录信息）
-                current_url = page.url
-                print(f"当前URL: {current_url}")
             
-                # 检查是否已登录（通过检查URL是否包含登录后的特征）
-                if "login" not in current_url.lower():
-                    login_successful = True
-                    break
-                await asyncio.sleep(5)  # 每5秒检查一次
+            # 所有平台使用统一的URL变化事件检测方式
+            print(f"启用URL变化事件检测 - 平台: {platform_key}")
+            
+            # 创建URL变化事件
+            url_changed_event = asyncio.Event()
+            
+            # URL变化处理函数
+            async def on_url_change(frame):
+                nonlocal login_successful
+                # 只关注主框架的变化
+                if frame == page.main_frame:
+                    current_url = page.url
+                    print(f"URL变化: {initial_url} -> {current_url}")
+                    
+                    # 检查是否已登录：如果URL不再包含login，认为登录成功
+                    if "login" not in current_url.lower():
+                        print("检测到URL不再包含login，认为登录成功")
+                        login_successful = True
+                        url_changed_event.set()
+            
+            # 监听页面的framenavigated事件
+            page.on('framenavigated', on_url_change)
+            
+            try:
+                # 等待URL变化事件或超时
+                print(f"等待URL变化事件，超时时间: {login_wait_timeout}毫秒")
+                await asyncio.wait_for(url_changed_event.wait(), timeout=login_wait_timeout)
+            except asyncio.TimeoutError:
+                print("URL变化事件检测超时")
+                login_successful = False
+            except Exception as e:
+                print(f"URL变化事件检测异常: {str(e)}")
+                login_successful = False
             
             # 如果检测到登录成功，才保存cookie和插入数据库
             if login_successful:
