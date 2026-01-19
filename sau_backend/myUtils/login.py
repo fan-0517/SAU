@@ -100,13 +100,8 @@ async def unified_login_cookie_gen(type, id, status_queue):
                 # 检查是否已登录（通过检查URL是否包含登录后的特征或cookie是否包含登录信息）
                 current_url = page.url
                 print(f"当前URL: {current_url}")
-                cookies = await context.cookies()
-                
-                # 打印当前cookie信息，用于调试
-                cookie_names = [cookie.get("name") for cookie in cookies]
-                print(f"当前cookie名称: {cookie_names}")
-
-                # 其他平台的原有检测逻辑
+            
+                # 检查是否已登录（通过检查URL是否包含登录后的特征）
                 if "login" not in current_url.lower():
                     login_successful = True
                     break
