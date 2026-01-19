@@ -666,15 +666,21 @@ MPP 系统采用模块化设计，新增平台支持非常简单，只需修改 
 本项目基于 MIT 协议开源，详见 [LICENSE](LICENSE) 文件
 
 ## 交流与支持
-- **GitHub Issues**：[https://github.com/funfan0517/MediaPublishPlatform/issues](https://github.com/funfan0517/MediaPublishPlatform/issues)
-- **Email**：1424393744@qq.com
+**GitHub Issues**：[https://github.com/funfan0517/MediaPublishPlatform/issues](https://github.com/funfan0517/MediaPublishPlatform/issues)
 
-## Star-History
+<details>
+<summary>💖 支持这个项目（点击展开）</summary>
+这个项目是我利用业余时间开发和维护的，旨在帮助更多开发者解决多账号多平台视频发布问题。如果它帮到了你，欢迎通过以下方式支持我。
+<p align="center">
+  <img src="doc/打赏支持/微信.jpg" width="220" alt="微信支付">
+  <img src="doc/打赏支持/支付宝.jpg" width="200" alt="支付宝">
+</p>
+你的支持资金将用于**服务器运维、功能优化和文档完善**，我会定期在仓库同步进展，也会邀请你参与功能投票，一起把工具做得更实用，让项目走得更远～
+</details>
+
+
+## Star History
 **感谢使用 MPP 自媒体发布平台！** 🚀
 如果这个项目对您有帮助，请给一个 ⭐ Star 以表示支持！
 
-<div align="center">
-  <a href="https://star-history.com/#dreammis/MPP&Date">
-    <img src="https://api.star-history.com/svg?repos=dreammis/MPP&type=Date" alt="Star History Chart" width="800" />
-  </a>
-</div>
+[![Star History Chart](https://api.star-history.com/svg?repos=funfan0517/MediaPublishPlatform&type=date&legend=top-left)](https://www.star-history.com/#funfan0517/MediaPublishPlatform&type=date&legend=top-left)
