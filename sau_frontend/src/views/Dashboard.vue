@@ -388,6 +388,7 @@ const getPlatformTagType = (platform) => {
     'Facebook': 'primary',
     '哔哩哔哩': 'info',
     '百家号': 'warning',
+    'YouTube': 'primary',
     '未知': 'default'
   }
   return typeMap[platform] || 'default'
